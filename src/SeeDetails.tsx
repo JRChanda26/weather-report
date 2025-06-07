@@ -102,7 +102,6 @@ function SeeDetails() {
   //       console.error('Failed to fetch geo location data:', error);
   //     }
   //   };
-
   //   fetchGeoLocation();
   // }
   // }, []);
