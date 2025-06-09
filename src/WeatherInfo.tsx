@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import axios from 'axios';
-import { Button, createTheme, MenuItem, Select, Typography, useTheme } from '@mui/material';
+import { Button, createTheme, Divider, IconButton, InputBase, Menu, MenuItem, Paper, Select, TextField, Typography, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import NorthIcon from '@mui/icons-material/North';
@@ -14,6 +14,9 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import dayjs from 'dayjs';
+import MenuIcon from '@mui/icons-material/Menu';
+import SearchIcon from '@mui/icons-material/Search';
+import DirectionsIcon from '@mui/icons-material/Directions';
 
 interface WeatherInfoProps {
   mode: 'light' | 'dark';
@@ -82,6 +85,40 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
     }
   }, [selectedState, selectedCountry]);
 
+  const [searchLocation, setSearchLocation] = useState('');
+  const [searchedLocationValue, setSearchedLocationValue] = useState('');
+  const [locationTyped, setLocationTyped] = useState(false)
+
+  const handleLocationSubmit = () => {
+    setSearchedLocationValue(searchLocation);
+    // setSearchedZipValue('');
+    setLocationTyped(true)
+  };
+
+  const [searchZip, setSearchZip] = useState('');
+  // const [searchedZipValue, setSearchedZipValue] = useState('');
+
+  // const handleZipSubmit = () => {
+  //   setSearchedZipValue(searchZip);
+  //   setLocationName('');
+    
+  // };
+
+  const handleZipSubmit = async () => {
+  try {
+    const response = await axios.get(
+      `https://api.openweathermap.org/data/2.5/weather?zip=${searchZip},${selectedCountry}&appid=${apiKey}`
+    );
+    const cityName = response.data.name;
+    setLocationName(cityName); 
+    // setSearchedZipValue(searchZip);
+    setClicked(false);
+    setLocationTyped(false);
+  } catch (error) {
+    console.error("Invalid ZIP or Country", error);
+  }
+};
+
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -110,6 +147,9 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
           if (clicked) {
             setLocationName(selectedCity);
             return;
+          } else if (locationTyped) {
+            setLocationName(searchedLocationValue)
+            return;
           } else if (address.suburb) {
             setLocationName(address.suburb);
             return;
@@ -123,7 +163,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
         }
       },
     );
-  }, [clicked, selectedCity]);
+  }, [clicked, selectedCity, locationTyped, searchedLocationValue]);
 
   useEffect(() => {
     const fetchWeatherReport = async () => {
@@ -140,6 +180,51 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
     fetchWeatherReport();
   }, [locationName]);
 
+  // useEffect(() => {
+  //   const fetchWeatherReport = async () => {
+  //     try {
+  //       const result = await axios.get(
+  //         `https://api.openweathermap.org/data/2.5/weather?zip=${searchedZipValue},${selectedCountry}&appid=${apiKey}`
+  //       );
+  //       // setWeatherData(result.data);
+  //       console.log('getttttttt',result.data.name)
+  //       setLocationName(result.data.name)
+  //     } catch (error) {
+  //       console.error('Failed to fetch weather data:', error);
+  //     }
+  //   };
+
+  //   fetchWeatherReport();
+  // }, [searchedZipValue, selectedCountry]);
+
+//   useEffect(() => {
+//   const fetchWeatherReport = async () => {
+//     try {
+//       // Reset before fetching
+//       // setWeatherData(null);
+
+//       let url = '';
+
+//       if (searchedZipValue && selectedCountry) {
+//         url = `https://api.openweathermap.org/data/2.5/weather?zip=${searchedZipValue},${selectedCountry}&appid=${apiKey}`;
+//       } else if (locationName) {
+//         url = `https://api.openweathermap.org/data/2.5/weather?q=${locationName}&appid=${apiKey}&units=metric`;
+//       } else {
+//         return; // No data to fetch
+//       }
+
+//       const result = await axios.get(url);
+//       setWeatherData(result.data);
+//     } catch (error) {
+//       console.error('Failed to fetch weather data:', error);
+//     }
+//   };
+
+//   fetchWeatherReport();
+// }, [searchedZipValue, selectedCountry, locationName]);
+
+
+  console.log('111qqqqqq',weatherData)
   // if (!weatherData) return <p />;
 
   // const date = new Date(weatherData.dt * 1000);
@@ -161,7 +246,20 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
 
   const latitude = weatherData?.coord?.lat || 0;
   const longitude = weatherData?.coord?.lon || 0;
-  console.log(latitude, longitude)
+  // console.log(latitude, longitude)
+
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const [selectedOption, setSelectedOption] = useState(0);
 
   return (
     <Box sx={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden', }}>
@@ -223,77 +321,168 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
             justifyContent: 'space-between',
             flexDirection: 'row'
           }}>
-            <Select
-              value={selectedCountry}
-              onChange={(e) => setSelectedCountry(e.target.value)}
-              displayEmpty
-              sx={{
-                '& .MuiOutlinedInput-notchedOutline': {
-                  border: 'none',
-                },
-                background: 'transparent',
-              }}
-            >
-              <MenuItem value="">Select Country</MenuItem>
-              {countries.map((country) => (
-                <MenuItem key={country.isoCode} value={country.isoCode}>
-                  {country.name}
+
+            <Box>
+              <IconButton
+                id="basic-button"
+                aria-controls={open ? 'basic-menu' : undefined}
+                aria-haspopup="true"
+                aria-expanded={open ? 'true' : undefined}
+                onClick={handleMenuClick}
+                sx={{ color: '#000' }}
+              >
+                <MenuIcon />
+              </IconButton>
+              <Menu
+                id="basic-menu"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+              >
+                <MenuItem onClick={() => { setSelectedOption(1); handleClose(); }}>
+                  Search location name
                 </MenuItem>
-              ))}
-            </Select>
+                <MenuItem onClick={() => { setSelectedOption(2); handleClose(); }}>
+                  Search zip code with select country
+                </MenuItem>
+                <MenuItem onClick={() => { setSelectedOption(3); handleClose(); }}>
+                  Select city
+                </MenuItem>
+              </Menu>
+            </Box>
 
-            {states.length > 0 && (
-              <Select
-                value={selectedState}
-                onChange={(e) => setSelectedState(e.target.value)}
-                displayEmpty
-                sx={{
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    border: 'none',
-                  },
-                  background: 'transparent',
-                }}
-              >
-                <MenuItem value="">Select State</MenuItem>
-                {states.map((state) => (
-                  <MenuItem key={state.isoCode} value={state.isoCode}>
-                    {state.name}
-                  </MenuItem>
-                ))}
-              </Select>
+            {selectedOption === 1 && (
+              <Box>
+                <Paper
+                  component="form"
+                  sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 400 }}
+                >
+                  <InputBase
+                    sx={{ ml: 1, flex: 1 }}
+                    placeholder="Search location"
+                    inputProps={{ 'aria-label': 'search google maps' }}
+                    value={searchLocation}
+                    onChange={(event: any) => {
+                      setSearchLocation(event.target.value)
+                    }}
+                  />
+                  <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
+                    <SearchIcon onClick={handleLocationSubmit} />
+                  </IconButton>
+                </Paper>
+              </Box>
             )}
 
-            {cities.length > 0 && (
-              <Select
-                value={selectedCity}
-                onChange={(e) => {
-                  setSelectedCity(e.target.value)
-                  setClicked(true)
-                }}
-                displayEmpty
-                sx={{
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    border: 'none',
-                  },
-                  background: 'transparent',
-                }}
-              >
-                <MenuItem value="">Select City</MenuItem>
-                {cities.map((city) => (
-                  <MenuItem key={city.name} value={city.name}>
-                    {city.name}
-                  </MenuItem>
-                ))}
-              </Select>
+            {selectedOption === 2 && (
+              <Box>
+                <Select
+                  value={selectedCountry}
+                  onChange={(e) => setSelectedCountry(e.target.value)}
+                  displayEmpty
+                  sx={{
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: 'none',
+                    },
+                    background: 'transparent',
+                  }}
+                >
+                  <MenuItem value="">Select Country</MenuItem>
+                  {countries.map((country) => (
+                    <MenuItem key={country.isoCode} value={country.isoCode}>
+                      {country.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+                
+                <TextField 
+                id="standard-basic" 
+                variant="standard" 
+                placeholder='zip code' 
+                value={searchZip} 
+                onChange={(event) => setSearchZip(event.target.value)} />
+
+                <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
+                  <SearchIcon onClick={handleZipSubmit} />
+                </IconButton>
+              </Box>
             )}
 
-            {/* Show selected location */}
-            {/* {selectedCountry && selectedState && selectedCity && (
+            {selectedOption === 3 && (
+              <Box>
+                <Select
+                  value={selectedCountry}
+                  onChange={(e) => setSelectedCountry(e.target.value)}
+                  displayEmpty
+                  sx={{
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: 'none',
+                    },
+                    background: 'transparent',
+                  }}
+                >
+                  <MenuItem value="">Select Country</MenuItem>
+                  {countries.map((country) => (
+                    <MenuItem key={country.isoCode} value={country.isoCode}>
+                      {country.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+
+                {states.length > 0 && (
+                  <Select
+                    value={selectedState}
+                    onChange={(e) => setSelectedState(e.target.value)}
+                    displayEmpty
+                    sx={{
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        border: 'none',
+                      },
+                      background: 'transparent',
+                    }}
+                  >
+                    <MenuItem value="">Select State</MenuItem>
+                    {states.map((state) => (
+                      <MenuItem key={state.isoCode} value={state.isoCode}>
+                        {state.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
+
+                {cities.length > 0 && (
+                  <Select
+                    value={selectedCity}
+                    onChange={(e) => {
+                      setSelectedCity(e.target.value)
+                      setClicked(true)
+                    }}
+                    displayEmpty
+                    sx={{
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        border: 'none',
+                      },
+                      background: 'transparent',
+                    }}
+                  >
+                    <MenuItem value="">Select City</MenuItem>
+                    {cities.map((city) => (
+                      <MenuItem key={city.name} value={city.name}>
+                        {city.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
+
+                {/* Show selected location */}
+                {/* {selectedCountry && selectedState && selectedCity && (
           <div style={{ marginTop: "1rem" }}>
             Selected Location: {selectedCountry} / {selectedState} / {selectedCity}
           </div>
         )} */}
-            <Box
+              </Box>
+            )}
+
+            {/* <Box
               sx={{
                 display: 'flex',
                 flexDirection: 'row',
@@ -307,8 +496,28 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
                 onChange={handleToggle}
               />
               <DarkModeIcon sx={{ color: toggleButtonColor }} />
-            </Box>
+            </Box> */}
           </Box>
+
+          <Box
+              sx={{
+                position: 'absolute',
+                top: '0%',
+            left: '92%',
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}
+            >
+              <LightModeIcon sx={{ color: toggleButtonColor }} />
+              <MaterialUISwitch
+                sx={{ m: 1 }}
+                checked={mode === 'dark'}
+                onChange={handleToggle}
+              />
+              <DarkModeIcon sx={{ color: toggleButtonColor }} />
+            </Box>
+
           <Box
             sx={{
               position: 'absolute',
