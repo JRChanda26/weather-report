@@ -1,4 +1,4 @@
-import { Box, Button, Card, FormControl, Grid, MenuItem, Select, SelectChangeEvent, styled, Typography } from '@mui/material';
+import { Box, Button, Card, FormControl, Grid, MenuItem, Select, SelectChangeEvent, styled, Tab, Tabs, Typography } from '@mui/material';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 import AirIcon from '@mui/icons-material/Air';
@@ -51,19 +51,17 @@ function SeeDetails() {
 
   const printRef = useRef<HTMLDivElement>(null);
 
-  const alertShownRef = useRef(false);
-
   const [uvIndex, setUvIndex] = useState(0);
 
   const [airQuality, setAirQuality] = useState(0)
   const [components, setComponents] = useState<any>(null);
 
   const [position, setPosition] = useState(0);
-  console.log(position)
+  // console.log(position)
 
   const latitude = weatherData?.coord?.lat || 0;
   const longitude = weatherData?.coord?.lon || 0;
-  console.log(latitude, longitude)
+  // console.log(latitude, longitude)
 
   const [aqiDetails, setAqiDetails] = useState('chart');
 
@@ -117,7 +115,7 @@ function SeeDetails() {
           );
           const aqi = result.data.list[0]?.main.aqi;
           const component = result.data.list[0]?.components;
-          console.log('Air Quality Index:', aqi);
+          // console.log('Air Quality Index:', aqi);
           setAirQuality(aqi);
           setComponents(component);
         } catch (error) {
@@ -131,7 +129,7 @@ function SeeDetails() {
             `https://api.openweathermap.org/data/2.5/uvi?lat=${lat}&lon=${lon}&appid=${apiKey}`
           );
           const uv = result.data.value;
-          console.log('UV Index:', uv);
+          // console.log('UV Index:', uv);
           setUvIndex(uv);
         } catch (error) {
           console.error('Failed to fetch UV Index:', error);
@@ -207,7 +205,17 @@ function SeeDetails() {
     });
   };
 
+  const getUpcomingForecasts = (data: any[]) => {
+    const now = new Date();
+
+    return data.filter((item: any) => {
+      const itemDate = new Date(item.dt_txt);
+      return itemDate >= now;
+    });
+  };
+  
   useEffect(() => {
+    if (!latitude || !longitude) return;
     const fetchData = async () => {
       try {
         const response = await axios.get(
@@ -215,23 +223,26 @@ function SeeDetails() {
         );
         const data = response.data.list;
 
-        const now = new Date();
-        const threeHoursLater = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+        setForecastData(data);
 
-        // Find if any forecast within the next 3 hours shows Rain
-        const rainExpected = data.some((entry: any) => {
-          const forecastTime = new Date(entry.dt_txt);
-          return (
-            forecastTime > now &&
-            forecastTime <= threeHoursLater &&
-            entry.weather[0].main.toLowerCase() === "rain"
-          );
+        const upcomingForecasts = getUpcomingForecasts(data);
+
+        const now = new Date();
+        const threeHoursLater = new Date(now.getTime() + 3 * 60 * 60 * 1000); // now + 3 hours
+
+        let rainFound = false;
+
+        upcomingForecasts.forEach((e: any, idx: number) => {
+          const forecastTime = new Date(e.dt_txt);
+          const isRain = e.weather?.[0]?.main.toLowerCase() === 'rain';
+
+          if (!rainFound && isRain && forecastTime <= threeHoursLater) {
+            rainFound = true;
+            console.log(`🌧️ Rain at index ${idx}: ${e.dt_txt} - ${e.weather?.[0]?.main}`);
+            showToast(); // 🔔 Call it only once
+          }
         });
 
-        if (rainExpected && !alertShownRef.current) {
-          showToast();
-          alertShownRef.current = true; // Set without triggering re-render
-        }
       } catch (error) {
         console.error("Error fetching weather data:", error);
       }
@@ -243,7 +254,62 @@ function SeeDetails() {
     const interval = setInterval(fetchData, 10 * 60 * 1000);
     return () => clearInterval(interval);
 
-  }, [alertShownRef, latitude, longitude]);
+  }, [latitude, longitude]);
+
+
+  const [forecastData, setForecastData] = useState([]);
+
+
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const response = await axios.get(
+  //         `https://api.openweathermap.org/data/2.5/forecast?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`
+  //       );
+  //       setForecastData(response.data.list); // This is the array of 3-hour intervals
+  //     } catch (error) {
+  //       console.error('Error fetching weather data:', error);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, [latitude, longitude]);
+
+  // console.log(forecastData)
+
+  //  const today = new Date();
+  //  today.setHours(21, 0, 0);
+
+  //     const todayForecasts = forecastData.filter((item: any) => {
+  //         const itemDate = new Date(item.dt_txt);
+  //         return itemDate < today;
+  //     });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Create slots using map
+  const todayForecasts = Array(8).fill(null).map((_, i) => {
+    const slotTime = new Date(today);
+    slotTime.setHours(i * 3);
+
+    const forecast: any = forecastData.find((item: any) => {
+      const forecastTime = new Date(item.dt_txt);
+      return (
+        forecastTime.getHours() === slotTime.getHours() &&
+        forecastTime.getDate() === slotTime.getDate()
+      );
+    });
+
+    return {
+      time: slotTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      temp: forecast ? `${Math.round(forecast.main.temp)}°C` : 'N/A',
+      icon: forecast?.weather?.[0]?.icon || '',
+      main: forecast?.weather?.[0]?.main || '',
+      description: forecast?.weather?.[0]?.description || '',
+    };
+  });
+
 
   // if (!weatherData) return <p />;
 
@@ -350,8 +416,14 @@ function SeeDetails() {
   const normalizedUVValue = (Math.min(uvIndex, 20) / 20) * 100;
   const uvColor = getUVIndexLevel(uvIndex).color;
 
+  const [tabValue, setTabValue] = React.useState('today');
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
+    setTabValue(newValue);
+  };
+
   return (
-    <Box sx={{ background: '#091a33', width: '100%', height: '100vh' }}>
+    <Box sx={{ background: '#091a33', width: '100%', height: '100%' }}>
       <Grid container spacing={0}
         sx={{
           height: '100%',
@@ -444,6 +516,65 @@ function SeeDetails() {
                 </Typography>
               </Card>
             </Box>
+
+
+            <Box sx={{ width: '100%' }}>
+              <Tabs value={tabValue} onChange={handleTabChange} aria-label="basic tabs example">
+                <Tab value={'today'} label="Today" />
+                <Tab value={'week'} label="Week" />
+              </Tabs>
+            </Box>
+
+            {tabValue === 'today' ? (
+              <Box sx={{
+                display: 'flex',
+                justifycontent: 'space-between',
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                width: '100%',
+                gap: 8,
+                m: 2,
+              }}>
+                {todayForecasts.map((item, index) => (
+                  <Box key={index} sx={{
+                    padding: '10px',
+                    borderRadius: '12px',
+                    // minWidth: '100px',
+                    // minHeight: '150px',
+                    background: '#89affa',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center'
+                  }}>
+                    <Typography>{item.time}</Typography>
+                    {item.icon && (
+                      <img
+                        src={`https://openweathermap.org/img/wn/${item.icon}@2x.png`}
+                        alt={item.main}
+                        style={{ width: '50px', height: '50px' }}
+                      />
+                    )}
+                    <Typography>{item.description}</Typography>
+                    <Typography>{item.temp}</Typography>
+                  </Box>
+                ))}
+              </Box>
+            ) : (
+              <Box m={2}>
+                <Button sx={{
+                  background: '#6389a8',
+                  textTransform: 'none',
+                  color: '#000000',
+                  '&:hover': { background: '#6389a8' },
+                }}
+                  onClick={() => navigate('/forecast', { state: { lat: latitude, lon: longitude } })}
+                >
+                  One Week Forecast Report
+                </Button>
+              </Box>
+            )}
+
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
               {currentReport.map(({ icon, value, label }, i) => (
