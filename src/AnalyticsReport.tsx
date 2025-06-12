@@ -88,6 +88,22 @@ function AnalyticsReport() {
                     <Tooltip content={<CustomTooltip />} />
                     <Line type="monotone" dataKey="temp" stroke="#2196f3" />
                 </LineChart>
+
+                {/* <BarChart data={data}>
+                    <CartesianGrid stroke="#ccc" />
+                    <XAxis dataKey="time" interval={7} />
+                    <YAxis unit="°C" />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="temp" fill="#2196f3" />
+                </BarChart> */}
+
+                {/* <AreaChart data={data}>
+                    <CartesianGrid stroke="#ccc" />
+                    <XAxis dataKey="time" interval={7} />
+                    <YAxis unit="°C" />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Area type="monotone" dataKey="temp" stroke="#2196f3" fill="#bbdefb" />
+                </AreaChart> */}
             </ResponsiveContainer>
         </Box>
     )

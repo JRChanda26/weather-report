@@ -96,28 +96,24 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
   };
 
   const [searchZip, setSearchZip] = useState('');
-  // const [searchedZipValue, setSearchedZipValue] = useState('');
-
-  // const handleZipSubmit = () => {
-  //   setSearchedZipValue(searchZip);
-  //   setLocationName('');
-    
-  // };
+  const [searchedZipValue, setSearchedZipValue] = useState('');
+  const [zipTyped, setZipTyped] = useState(false);
 
   const handleZipSubmit = async () => {
-  try {
-    const response = await axios.get(
-      `https://api.openweathermap.org/data/2.5/weather?zip=${searchZip},${selectedCountry}&appid=${apiKey}`
-    );
-    const cityName = response.data.name;
-    setLocationName(cityName); 
-    // setSearchedZipValue(searchZip);
-    setClicked(false);
-    setLocationTyped(false);
-  } catch (error) {
-    console.error("Invalid ZIP or Country", error);
-  }
-};
+    try {
+      const response = await axios.get(
+        `https://api.openweathermap.org/data/2.5/weather?zip=${searchZip},${selectedCountry}&appid=${apiKey}`
+      );
+      const cityName = response.data.name;
+      // setLocationName(cityName);
+      setSearchedZipValue(cityName);
+      setZipTyped(true)
+      setClicked(false);
+      setLocationTyped(false);
+    } catch (error) {
+      console.error("Invalid ZIP or Country", error);
+    }
+  };
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -150,6 +146,9 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
           } else if (locationTyped) {
             setLocationName(searchedLocationValue)
             return;
+          }else if (zipTyped) {
+            setLocationName(searchedZipValue)
+            return;
           } else if (address.suburb) {
             setLocationName(address.suburb);
             return;
@@ -163,7 +162,9 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
         }
       },
     );
-  }, [clicked, selectedCity, locationTyped, searchedLocationValue]);
+  }, [clicked, selectedCity, locationTyped, searchedLocationValue, zipTyped, searchedZipValue]);
+
+  const [weatherVideo, setWeatherVideo] = useState('');
 
   useEffect(() => {
     const fetchWeatherReport = async () => {
@@ -172,6 +173,54 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
           `https://api.openweathermap.org/data/2.5/weather?q=${locationName}&appid=${apiKey}&units=metric`
         );
         setWeatherData(result.data);
+
+        const mainWeather = result.data.weather[0].main;
+
+        switch (mainWeather.toLowerCase()) {
+          case 'clear':
+            setWeatherVideo('/sunny.mp4');
+            break;
+
+          case 'clouds':
+            setWeatherVideo('/cloudy.mp4');
+            break;
+
+          case 'rain':
+          case 'drizzle':
+            setWeatherVideo('/rainy.mp4');
+            break;
+
+          case 'thunderstorm':
+          case 'squall':
+          case 'tornado':
+            setWeatherVideo('/stormy.mp4');
+            break;
+
+          case 'snow':
+            setWeatherVideo('/snowy.mp4');
+            break;
+
+          case 'mist':
+          case 'fog':
+          case 'haze':
+          case 'smoke':
+            setWeatherVideo('/foggy.mp4');
+            break;
+
+          case 'dust':
+          case 'sand':
+          case 'ash':
+            setWeatherVideo('/dusty.mp4');
+            break;
+
+          default:
+            setWeatherVideo('');
+            break;
+        }
+
+        // const videoFile = `/${mainWeather.toLowerCase()}.mp4`;
+        // setWeatherVideo(videoFile)
+        
       } catch (error) {
         console.error('Failed to fetch weather data:', error);
       }
@@ -197,34 +246,32 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
   //   fetchWeatherReport();
   // }, [searchedZipValue, selectedCountry]);
 
-//   useEffect(() => {
-//   const fetchWeatherReport = async () => {
-//     try {
-//       // Reset before fetching
-//       // setWeatherData(null);
+  //   useEffect(() => {
+  //   const fetchWeatherReport = async () => {
+  //     try {
+  //       // Reset before fetching
+  //       // setWeatherData(null);
 
-//       let url = '';
+  //       let url = '';
 
-//       if (searchedZipValue && selectedCountry) {
-//         url = `https://api.openweathermap.org/data/2.5/weather?zip=${searchedZipValue},${selectedCountry}&appid=${apiKey}`;
-//       } else if (locationName) {
-//         url = `https://api.openweathermap.org/data/2.5/weather?q=${locationName}&appid=${apiKey}&units=metric`;
-//       } else {
-//         return; // No data to fetch
-//       }
+  //       if (searchedZipValue && selectedCountry) {
+  //         url = `https://api.openweathermap.org/data/2.5/weather?zip=${searchedZipValue},${selectedCountry}&appid=${apiKey}`;
+  //       } else if (locationName) {
+  //         url = `https://api.openweathermap.org/data/2.5/weather?q=${locationName}&appid=${apiKey}&units=metric`;
+  //       } else {
+  //         return; // No data to fetch
+  //       }
 
-//       const result = await axios.get(url);
-//       setWeatherData(result.data);
-//     } catch (error) {
-//       console.error('Failed to fetch weather data:', error);
-//     }
-//   };
+  //       const result = await axios.get(url);
+  //       setWeatherData(result.data);
+  //     } catch (error) {
+  //       console.error('Failed to fetch weather data:', error);
+  //     }
+  //   };
 
-//   fetchWeatherReport();
-// }, [searchedZipValue, selectedCountry, locationName]);
+  //   fetchWeatherReport();
+  // }, [searchedZipValue, selectedCountry, locationName]);
 
-
-  console.log('111qqqqqq',weatherData)
   // if (!weatherData) return <p />;
 
   // const date = new Date(weatherData.dt * 1000);
@@ -277,7 +324,13 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
       >
         <source src="weather_video.mp4" type="video/mp4" />
       </video> */}
-      <MapContainer
+      {weatherVideo && (
+        <video autoPlay muted loop key={weatherVideo} style={{ width: '100%', height: 'auto', objectFit: 'cover', }}>
+          <source src={weatherVideo} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      )}
+      {/* <MapContainer
         center={[latitude, longitude]}
         zoom={2}
         zoomControl={false}
@@ -285,27 +338,27 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
         doubleClickZoom={false}
         dragging={true}
         style={{ height: '100%', width: '100%', zIndex: 0 }}
-      >
+      > */}
 
-        {/* OpenStreetMap base layer */}
-        <TileLayer
+      {/* OpenStreetMap base layer */}
+      {/* <TileLayer
           attribution=''
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        /> */}
 
-        {/* OpenWeather temperature overlay */}
-        <TileLayer
+      {/* OpenWeather temperature overlay */}
+      {/* <TileLayer
           attribution=''
           url={`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${apiKey}`}
           opacity={2}
-        />
+        /> */}
 
-        <Marker position={[latitude, longitude]}>
+      {/* <Marker position={[latitude, longitude]}>
           <Popup>
             {weatherData?.name} <br />{Math.round(weatherData?.main?.temp || 0)}°C
           </Popup>
         </Marker>
-      </MapContainer>
+      </MapContainer> */}
 
       {/* Overlay Content */}
       {weatherData ? (
@@ -331,7 +384,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
                 onClick={handleMenuClick}
                 sx={{ color: '#000' }}
               >
-                <MenuIcon />
+                <MenuIcon sx={{color:textColor}}/>
               </IconButton>
               <Menu
                 id="basic-menu"
@@ -393,13 +446,13 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
                     </MenuItem>
                   ))}
                 </Select>
-                
-                <TextField 
-                id="standard-basic" 
-                variant="standard" 
-                placeholder='zip code' 
-                value={searchZip} 
-                onChange={(event) => setSearchZip(event.target.value)} />
+
+                <TextField
+                  id="standard-basic"
+                  variant="standard"
+                  placeholder='zip code'
+                  value={searchZip}
+                  onChange={(event) => setSearchZip(event.target.value)} />
 
                 <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
                   <SearchIcon onClick={handleZipSubmit} />
@@ -500,23 +553,23 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
           </Box>
 
           <Box
-              sx={{
-                position: 'absolute',
-                top: '0%',
-            left: '92%',
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}
-            >
-              <LightModeIcon sx={{ color: toggleButtonColor }} />
-              <MaterialUISwitch
-                sx={{ m: 1 }}
-                checked={mode === 'dark'}
-                onChange={handleToggle}
-              />
-              <DarkModeIcon sx={{ color: toggleButtonColor }} />
-            </Box>
+            sx={{
+              position: 'absolute',
+              top: '0%',
+              left: '92%',
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}
+          >
+            <LightModeIcon sx={{ color: toggleButtonColor }} />
+            <MaterialUISwitch
+              sx={{ m: 1 }}
+              checked={mode === 'dark'}
+              onChange={handleToggle}
+            />
+            <DarkModeIcon sx={{ color: toggleButtonColor }} />
+          </Box>
 
           <Box
             sx={{
