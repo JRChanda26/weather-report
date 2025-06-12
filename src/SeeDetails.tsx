@@ -76,6 +76,16 @@ function SeeDetails() {
           `https://api.openweathermap.org/data/2.5/weather?q=${locationName}&appid=${apiKey}&units=metric`
         );
         setWeatherData(result.data);
+
+        const mainWeather = result.data.weather[0]?.main;
+        
+        if (mainWeather && mainWeather.toLowerCase() === 'rain') {
+        toast.info("🌧️ It's currently raining!", {
+          position: "top-center",
+          autoClose: 5000,
+        });
+      }
+
       } catch (error) {
         console.error('Failed to fetch weather data:', error);
       }
@@ -213,7 +223,7 @@ function SeeDetails() {
       return itemDate >= now;
     });
   };
-  
+
   useEffect(() => {
     if (!latitude || !longitude) return;
     const fetchData = async () => {
@@ -444,7 +454,7 @@ function SeeDetails() {
             }}
             ref={printRef}
           >
-            <ToastContainer />;
+            <ToastContainer />
             <Box sx={{
               display: 'flex',
               flexDirection: 'row',
@@ -679,7 +689,7 @@ function SeeDetails() {
                 height: '40vh',
                 background: '#64b6fa',
               }}>
-                <MapContainer
+                {/* <MapContainer
                   center={[latitude, longitude]}
                   zoom={15}
                   zoomControl={false}
@@ -690,6 +700,35 @@ function SeeDetails() {
                     attribution=''
                   />
                   <Marker position={[latitude, longitude]} />
+                </MapContainer> */}
+                <MapContainer
+                  center={[latitude, longitude]}
+                  zoom={7}
+                  zoomControl={false}
+                  scrollWheelZoom={false}
+                  doubleClickZoom={false}
+                  dragging={true}
+                  style={{ height: '100%', width: '100%', zIndex: 0 }}
+                >
+
+                  {/* OpenStreetMap base layer */}
+                  <TileLayer
+                    attribution=''
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+
+                  {/* OpenWeather temperature overlay */}
+                  <TileLayer
+                    attribution=''
+                    url={`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${apiKey}`}
+                    opacity={2}
+                  />
+
+                  <Marker position={[latitude, longitude]}>
+                    <Popup>
+                      {weatherData?.name} <br />{Math.round(weatherData?.main?.temp || 0)}°C
+                    </Popup>
+                  </Marker>
                 </MapContainer>
               </Card>
               <Card sx={{

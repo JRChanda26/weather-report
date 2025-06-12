@@ -71,6 +71,7 @@ function ForecastReport() {
                                 <TableCell align="center"><strong>Humidity (%)</strong></TableCell>
                                 <TableCell align="center"><strong>Visibility (km)</strong></TableCell>
                                 <TableCell align="center"><strong>Main</strong></TableCell>
+                                <TableCell align="center"><strong>Chance (%)</strong></TableCell>
                                 <TableCell align="center"><strong>Wind Speed (km/h)</strong></TableCell>
                                 <TableCell align="center"><strong>Icon</strong></TableCell>
                             </TableRow>
@@ -87,6 +88,7 @@ function ForecastReport() {
                                     <TableCell align="center">{Math.round(item.main.humidity || 0)}</TableCell>
                                     <TableCell align="center">{Math.round((item.visibility || 0) / 1000)}</TableCell>
                                     <TableCell align="center">{item.weather[0].main}</TableCell>
+                                    <TableCell align="center">{item.pop}</TableCell>
                                     <TableCell align="center">{Math.round(item.wind.speed || 0)}</TableCell>
                                     <TableCell align="center">
                                         <img
