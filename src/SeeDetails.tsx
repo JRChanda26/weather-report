@@ -1,4 +1,4 @@
-import { Box, Button, Card, FormControl, Grid, MenuItem, Select, SelectChangeEvent, styled, Tab, Tabs, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, FormControl, Grid, MenuItem, Select, SelectChangeEvent, styled, Tab, Tabs, Tooltip, Typography } from '@mui/material';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 import AirIcon from '@mui/icons-material/Air';
@@ -9,6 +9,9 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import CircleIcon from '@mui/icons-material/Circle';
+import InfoIcon from '@mui/icons-material/Info';
+import NavigationIcon from '@mui/icons-material/Navigation';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useLocation, useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
@@ -21,6 +24,7 @@ import jsPDF from 'jspdf';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import dayjs from 'dayjs';
+import CloudIcon from '@mui/icons-material/Cloud';
 
 // Set default icon paths manually without touching _getIconUrl
 L.Icon.Default.mergeOptions({
@@ -78,13 +82,13 @@ function SeeDetails() {
         setWeatherData(result.data);
 
         const mainWeather = result.data.weather[0]?.main;
-        
+
         if (mainWeather && mainWeather.toLowerCase() === 'rain') {
-        toast.info("🌧️ It's currently raining!", {
-          position: "top-center",
-          autoClose: 5000,
-        });
-      }
+          toast.info("🌧️ It's currently raining!", {
+            position: "top-center",
+            autoClose: 5000,
+          });
+        }
 
       } catch (error) {
         console.error('Failed to fetch weather data:', error);
@@ -347,39 +351,56 @@ function SeeDetails() {
   // });
   // const formattedDate = `${datePart}`;
 
-  const currentReport = [{
-    icon: <AirIcon />,
-    value: `${Math.round(weatherData?.wind.speed || 0)}km/h (${getWindDirection(weatherData?.wind?.deg || 0)})`,
-    label: 'Wind'
-  }, {
-    icon: <DeviceThermostatIcon />,
-    value: `${Math.round(weatherData?.main.temp || 0)}°C`,
-    label: 'Temperature'
-  }, {
-    icon: <WaterDropIcon />,
-    value: `${Math.round(weatherData?.main.humidity || 0)}%`,
-    label: 'Humidity'
-  }, {
-    icon: <SouthIcon />,
-    value: `${Math.round(weatherData?.main.pressure || 0)}mb`,
-    label: 'Pressure'
-  }, {
-    icon: <VisibilityIcon />,
-    value: `${Math.round((weatherData?.visibility || 0) / 1000)} km`,
-    label: 'Visibility'
-  },
-  {
-    icon: <WbSunnyIcon />,
-    value: `${uvIndex} mW/m2`,
-    label: 'UV'
-  }
-  ]
+  // const currentReport = [{
+  //   icon: <AirIcon />,
+  //   value: `${Math.round(weatherData?.wind.speed || 0)}km/h (${getWindDirection(weatherData?.wind?.deg || 0)})`,
+  //   label: 'Wind'
+  // }, {
+  //   icon: <DeviceThermostatIcon />,
+  //   value: `${Math.round(weatherData?.main.temp || 0)}°C`,
+  //   label: 'Temperature'
+  // }, {
+  //   icon: <WaterDropIcon />,
+  //   value: `${Math.round(weatherData?.main.humidity || 0)}%`,
+  //   label: 'Humidity'
+  // }, {
+  //   icon: <SouthIcon />,
+  //   value: `${Math.round(weatherData?.main.pressure || 0)}mb`,
+  //   label: 'Pressure'
+  // }, {
+  //   icon: <VisibilityIcon />,
+  //   value: `${Math.round((weatherData?.visibility || 0) / 1000)} km`,
+  //   label: 'Visibility'
+  // }, {
+  //   icon: <WbSunnyIcon />,
+  //   value: `${uvIndex} mW/m2`,
+  //   label: 'UV'
+  // }
+  // ]
 
   function getWindDirection(deg: number): string {
     const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
     const index = Math.round(deg / 45) % 8;
     return directions[index];
   }
+
+  const getVisibilityRange = (value: number | string) => {
+    const visibility = typeof value === 'string' ? parseInt(value, 10) : value;
+    if (isNaN(visibility)) return 'N/A';
+    if (visibility >= 10000) return 'Excellent';
+    if (visibility >= 6000) return 'Good';
+    if (visibility >= 4000) return 'Moderate';
+    if (visibility >= 1000) return 'Poor';
+    return 'Very Poor';
+  };
+
+  const getHumidityLevel = (value: number | string) => {
+    const humidity = typeof value === 'string' ? parseInt(value, 10) : value;
+    if (isNaN(humidity)) return 'N/A';
+    if (humidity < 30) return 'Low';
+    if (humidity <= 60) return 'Moderate';
+    return 'High';
+  };
 
   const getAirQuality = (value: number | string) => {
     const aqi = typeof value === 'string' ? parseInt(value, 10) : value;
@@ -391,40 +412,58 @@ function SeeDetails() {
     return 'N/A';
   };
 
-  // const getUVIndexLevel = (value: number | string): { label: string; color: string } => {
-  //   const uv = typeof value === 'string' ? parseFloat(value) : value;
-  //   if (uv >= 0 && uv <= 2) return { label: 'Low', color: '#20b806' };
-  //   if (uv >= 3 && uv <= 5) return { label: 'Moderate', color: '#f1f51b' };
-  //   if (uv >= 6 && uv <= 7) return { label: 'High', color: '#fca10d' };
-  //   if (uv >= 8 && uv <= 10) return { label: 'Very High', color: '#e30e0e' };
-  //   if (uv >= 11) return { label: 'Extreme', color: '#ed1ce6' };
-  //   return { label: 'N/A', color: '#1cafed' };
-  // };
-  const getUVIndexLevel = (value: number | string): { label: string; color: string } => {
-    const uv = typeof value === 'string' ? parseFloat(value) : value;
-
-    if (isNaN(uv) || uv < 0) return { label: 'N/A', color: '#1cafed' };
-    if (uv <= 2) return { label: 'Low', color: '#20b806' };
-    if (uv <= 5) return { label: 'Moderate', color: '#f1f51b' };
-    if (uv <= 7) return { label: 'High', color: '#fca10d' };
-    if (uv <= 10) return { label: 'Very High', color: '#e30e0e' };
-    return { label: 'Extreme', color: '#ed1ce6' };
+  const getUVIndexLevel = (value: number | string): string => {
+    const uv = typeof value === 'string' ? parseInt(value, 10) : value;
+    if (isNaN(uv) || uv < 0) return 'N/A';
+    if (uv <= 2) return 'Low';
+    if (uv <= 5) return 'Moderate';
+    if (uv <= 7) return 'High';
+    if (uv <= 10) return 'Very High';
+    return 'Extreme';
   };
 
-  const CustomLinearProgress = styled(LinearProgress)<{ barColor: string }>(({ barColor }) => ({
+
+  // const CustomLinearProgress = styled(LinearProgress)<{ barColor: string }>(({ barColor }) => ({
+  //   height: 10,
+  //   borderRadius: 5,
+  //   [`&.${linearProgressClasses.colorPrimary}`]: {
+  //     backgroundColor: '#e0e0e0',
+  //   },
+  //   [`& .${linearProgressClasses.bar}`]: {
+  //     borderRadius: 5,
+  //     backgroundColor: barColor,
+  //   },
+  // }));
+
+  const CustomLinearProgress = styled('div')<{ value: number }>(({ value }) => ({
     height: 10,
     borderRadius: 5,
-    [`&.${linearProgressClasses.colorPrimary}`]: {
+    backgroundImage: `linear-gradient(to right,
+    #20b806 0%,
+    #f1f51b 25%,
+    #fca10d 50%,
+    #e30e0e 75%,
+    #ed1ce6 100%
+  )`,
+    position: 'relative',
+    overflow: 'hidden',
+
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      width: `${100 - value}%`,
       backgroundColor: '#e0e0e0',
-    },
-    [`& .${linearProgressClasses.bar}`]: {
-      borderRadius: 5,
-      backgroundColor: barColor,
+      transition: 'width 0.3s ease-in-out',
     },
   }));
 
-  const normalizedUVValue = (Math.min(uvIndex, 20) / 20) * 100;
-  const uvColor = getUVIndexLevel(uvIndex).color;
+  // const normalizedUVValue = (Math.min(uvIndex, 20) / 20) * 100;
+
+  const uvIndexValue = (Math.round(uvIndex * 9.09));
+  const uvDetails = getUVIndexLevel(uvIndex);
 
   const [tabValue, setTabValue] = React.useState('today');
 
@@ -433,358 +472,458 @@ function SeeDetails() {
   };
 
   return (
-    <Box sx={{ background: '#091a33', width: '100%', height: '100%' }}>
-      <Grid container spacing={0}
-        sx={{
-          height: '100%',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center'
-        }}>
-        {weatherData ? (
-          <Grid
-            item xs={12} sm={12} md={12}
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              height: '100%',
-              // overflowY: 'auto',
-              p: 2
-            }}
-            ref={printRef}
-          >
-            <ToastContainer />
-            <Box sx={{
-              display: 'flex',
-              flexDirection: 'row',
-              gap: 2
-            }}>
-              <Card sx={{ mb: 2, background: '#254a94', width: '100%' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', gap: 2, p: 2 }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                    <img
-                      src={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}
-                      alt="Weather Icon"
-                    />
-                    <Typography>
-                      {weatherData?.weather[0].description}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <LocationOnIcon /> {weatherData.name}
-                    </Typography>
-                    {/* <Typography>{dayOfWeek} {formattedDate}</Typography> */}
-                    <Typography>{dayjs(weatherData.dt * 1000).format('dddd MMMM D, YYYY')}</Typography>
-                  </Box>
-                </Box>
-              </Card>
+    <Box>
+      {weatherData ? (
+        <Grid container ref={printRef}>
+          <ToastContainer />
+          <Grid item xs={12} sm={4} md={3} sx={{
+            background: 'grey',
+            width: '100%',
+            height: 'auto',
+            display: 'flex',
+            justifyContent: 'space-between',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}>
+            {/* Weather Details */}
+            <Box textAlign='center'>
+              <img
+                src={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}
+                alt="Weather Icon"
+                style={{
+                  width: '50%',
+                  filter: 'drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.6))'
+                }}
+              />
 
-              <Card sx={{
+              <Typography sx={{
+                fontSize: '20px',
+                fontWeight: 500,
+              }}>
+                {weatherData.weather[0].description}
+              </Typography>
+              <Typography sx={{
+                display: 'flex', alignItems: 'center', gap: 1, fontSize: '30px',
+                fontWeight: 700,
+              }}>
+                <LocationOnIcon /> {weatherData.name}
+              </Typography>
+              {/* <Typography>{dayOfWeek} {formattedDate}</Typography> */}
+              <Typography sx={{
+                fontSize: '50px',
+                fontWeight: 700,
                 display: 'flex',
-                justifyContent: 'center',
-                gap: 55,
-                background: 'linear-gradient(to right, #FF0000, #FFA500)',
-                mb: 2,
-                width: '100%',
-                position: 'relative',
+                alignItems: 'center',
+                filter: 'drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.6))'
+              }}>
+                <DeviceThermostatIcon /> {Math.round(weatherData.main.temp || 0)}°C
+              </Typography>
+              <Typography sx={{
+                fontSize: '14px',
+                fontWeight: 700,
+                display: 'flex',
+                alignItems: 'center'
+              }}>{dayjs(weatherData.dt * 1000).format('dddd MMMM D, YYYY')}</Typography>
+            </Box>
+
+            {/* Sun Movement */}
+            <Box sx={{
+              position: 'relative',
+              width: '100%',
+              height: 60,
+              margin: '10px 0px',
+              filter: 'drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.7))',
+            }}>
+              {/* Sun & Moon Icon */}
+              <Box sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexDirection: 'row',
+                padding: '0px 20px'
               }}>
                 <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   {/* <WbSunnyIcon /> {formattedSunriseTime} */}
-                  <WbSunnyIcon /> {dayjs(weatherData.sys.sunrise * 1000).format('hh:mm A')}
+                  <WbSunnyIcon />
+                  {/* {dayjs(weatherData.sys.sunrise * 1000).format('hh:mm A')} */}
                 </Typography>
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '20%',
-                    width: '60%',
-                    height: 2,
-                    backgroundColor: '#000000',
-                    zIndex: 1
-                  }}
-                />
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: '30%',
-                    // left: `${position}%`,
-                    left: `${46 + position * 0.6}%`,
-                    transform: 'translateX(-50%)',
-                    fontSize: 35,
-                    zIndex: 2,
-                    width: '60%',
-                    transition: 'left 1s ease-in-out',
-                  }}
-                >
-                  🌞
-                </Box>
+
                 <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   {/* <DarkModeIcon /> {formattedSunsetTime} */}
-                  <CircleIcon /> {dayjs(weatherData.sys.sunset * 1000).format('hh:mm A')}
+                  <DarkModeIcon />
+                  {/* {dayjs(weatherData.sys.sunset * 1000).format('hh:mm A')} */}
                 </Typography>
-              </Card>
-            </Box>
-
-
-            <Box sx={{ width: '100%' }}>
-              <Tabs value={tabValue} onChange={handleTabChange} aria-label="basic tabs example">
-                <Tab value={'today'} label="Today" />
-                <Tab value={'week'} label="Week" />
-              </Tabs>
-            </Box>
-
-            {tabValue === 'today' ? (
-              <Box sx={{
-                display: 'flex',
-                justifycontent: 'space-between',
-                flexDirection: 'row',
-                flexWrap: 'wrap',
-                width: '100%',
-                gap: 8,
-                m: 2,
-              }}>
-                {todayForecasts.map((item, index) => (
-                  <Box key={index} sx={{
-                    padding: '10px',
-                    borderRadius: '12px',
-                    // minWidth: '100px',
-                    // minHeight: '150px',
-                    background: '#89affa',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center'
-                  }}>
-                    <Typography>{item.time}</Typography>
-                    {item.icon && (
-                      <img
-                        src={`https://openweathermap.org/img/wn/${item.icon}@2x.png`}
-                        alt={item.main}
-                        style={{ width: '50px', height: '50px' }}
-                      />
-                    )}
-                    <Typography>{item.description}</Typography>
-                    <Typography>{item.temp}</Typography>
-                  </Box>
-                ))}
               </Box>
-            ) : (
-              <Box m={2}>
-                <Button sx={{
-                  background: '#6389a8',
-                  textTransform: 'none',
-                  color: '#000000',
-                  '&:hover': { background: '#6389a8' },
+
+              {/* Horizontal Line */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: 0,
+                  right: 0,
+                  height: 4,
+                  margin: '10px 20px',
+                  background: 'linear-gradient(to right, #FF0000, #FFA500)',
+                  transform: 'translateY(-50%)',
                 }}
-                  onClick={() => navigate('/forecast', { state: { lat: latitude, lon: longitude } })}
-                >
-                  One Week Forecast Report
-                </Button>
+              />
+
+              {/* Sun Emoji */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  left: `${20 + position * 0.6}%`,
+                  transform: 'translateX(-50%)',
+                  fontSize: 35,
+                  top: '20%',
+                  zIndex: 2,
+                  transition: 'left 1s ease-in-out',
+                }}
+              >
+                🌞
               </Box>
-            )}
-
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-              {currentReport.map(({ icon, value, label }, i) => (
-                <Card
-                  key={i}
-                  sx={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 1,
-                    p: 2,
-                    background: '#89affa',
-                  }}
-                >
-                  {icon}
-                  <Typography fontWeight={700} fontSize={14}>{value}</Typography>
-                  <Typography fontWeight={700} fontSize={14}>{label}</Typography>
-                </Card>
-              ))}
             </Box>
 
+            {/* Map Location */}
+            <Box sx={{
+              width: '100%',
+              height: '30vh',
+              filter: 'drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.6))',
+              p: 2
+            }}>
+              <MapContainer
+                center={[latitude, longitude]}
+                zoom={7}
+                zoomControl={false}
+                scrollWheelZoom={false}
+                doubleClickZoom={false}
+                dragging={true}
+                style={{ height: '100%', width: '100%', zIndex: 0, borderRadius: '12px', }}
+              >
+
+                {/* OpenStreetMap base layer */}
+                <TileLayer
+                  attribution=''
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+
+                {/* OpenWeather temperature overlay */}
+                <TileLayer
+                  attribution=''
+                  url={`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${apiKey}`}
+                  opacity={2}
+                />
+
+                <Marker position={[latitude, longitude]}>
+                  <Popup>
+                    {weatherData?.name} <br />{Math.round(weatherData?.main?.temp || 0)}°C
+                  </Popup>
+                </Marker>
+              </MapContainer>
+            </Box>
+
+            {/* Button */}
             <Box sx={{
               display: 'flex',
-              justifyContent: 'space-between',
               flexDirection: 'row',
-              gap: 2,
-              mt: 2
+              gap: 5,
+              p: 2,
             }}>
-              <Card sx={{
-                p: 2,
-                width: '100%',
-                height: '40vh',
-                background: '#64b6fa',
+              <Button sx={{
+                background: '#6389a8',
+                textTransform: 'none',
+                color: '#000000',
+                '&:hover': { background: '#6389a8' },
               }}
+                onClick={() => navigate('/forecast', { state: { lat: latitude, lon: longitude } })}
               >
-                <Box sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  flexDirection: 'row'
-                }}>
-                  <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    AQI: {getAirQuality(airQuality)}
-                  </Typography>
-                  <Box sx={{ minWidth: 120 }}>
-                    <FormControl fullWidth>
-                      <Select
-                        labelId="demo-simple-select-label"
-                        id="demo-simple-select"
-                        value={aqiDetails}
-                        onChange={handleChange}
-                        sx={{
-                          border: 'none',
-                          boxShadow: 'none',
-                          '& fieldset': { border: 'none' }
-                        }}
-                      >
-                        <MenuItem value='chart'>AQI Chart</MenuItem>
-                        <MenuItem value='report'>AQI Report</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Box>
-                </Box>
-                {aqiDetails === 'chart' && (
-                  <Box height='30vh' width='100%' ml={10}>
-                    <ReactSpeedometer
-                      needleHeightRatio={0.7}
-                      maxSegmentLabels={5}
-                      minValue={1}
-                      maxValue={5}
-                      currentValueText={`${airQuality}`}
-                      value={airQuality}
-                      segments={1000}
-                      startColor="green"
-                      endColor="red"
-                      textColor="black"
-                    />
-                  </Box>
-                )}
-                {components && aqiDetails === 'report' && (
-                  <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: '0.85rem' }}>
-                    <thead>
-                      <tr>
-                        <th style={{ textAlign: 'left', padding: '2px', borderBottom: '1px solid #ccc' }}>Component</th>
-                        <th style={{ textAlign: 'right', padding: '2px', borderBottom: '1px solid #ccc' }}>Value (μg/m³)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr><td style={{ padding: '2px', textAlign: 'left' }}>PM2.5</td><td style={{ padding: '2px', textAlign: 'right' }}>{components.pm2_5}</td></tr>
-                      <tr><td style={{ padding: '2px', textAlign: 'left' }}>PM10</td><td style={{ padding: '2px', textAlign: 'right' }}>{components.pm10}</td></tr>
-                      <tr><td style={{ padding: '2px', textAlign: 'left' }}>NO₂</td><td style={{ padding: '2px', textAlign: 'right' }}>{components.no2}</td></tr>
-                      <tr><td style={{ padding: '2px', textAlign: 'left' }}>O₃</td><td style={{ padding: '2px', textAlign: 'right' }}>{components.o3}</td></tr>
-                      <tr><td style={{ padding: '2px', textAlign: 'left' }}>SO₂</td><td style={{ padding: '2px', textAlign: 'right' }}>{components.so2}</td></tr>
-                      <tr><td style={{ padding: '2px', textAlign: 'left' }}>CO</td><td style={{ padding: '2px', textAlign: 'right' }}>{components.co}</td></tr>
-                    </tbody>
-                  </table>
-                )}
-
-              </Card>
-              <Card sx={{
-                width: '100%',
-                height: '40vh',
-                background: '#64b6fa',
-              }}>
-                {/* <MapContainer
-                  center={[latitude, longitude]}
-                  zoom={15}
-                  zoomControl={false}
-                  style={{ height: '100%', width: '100%', borderRadius: 4 }}
-                >
-                  <TileLayer
-                    url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
-                    attribution=''
-                  />
-                  <Marker position={[latitude, longitude]} />
-                </MapContainer> */}
-                <MapContainer
-                  center={[latitude, longitude]}
-                  zoom={7}
-                  zoomControl={false}
-                  scrollWheelZoom={false}
-                  doubleClickZoom={false}
-                  dragging={true}
-                  style={{ height: '100%', width: '100%', zIndex: 0 }}
-                >
-
-                  {/* OpenStreetMap base layer */}
-                  <TileLayer
-                    attribution=''
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-
-                  {/* OpenWeather temperature overlay */}
-                  <TileLayer
-                    attribution=''
-                    url={`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${apiKey}`}
-                    opacity={2}
-                  />
-
-                  <Marker position={[latitude, longitude]}>
-                    <Popup>
-                      {weatherData?.name} <br />{Math.round(weatherData?.main?.temp || 0)}°C
-                    </Popup>
-                  </Marker>
-                </MapContainer>
-              </Card>
-              <Card sx={{
-                background: '#addff7',
-                display: 'flex',
-                justifyContent: 'space-around',
-                flexDirection: 'column',
-                width: '35%',
-                p: 2
-              }}>
-                <Box>
-                  <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    UV: {getUVIndexLevel(uvIndex).label}
-                  </Typography>
-                  <CustomLinearProgress
-                    variant="determinate"
-                    value={normalizedUVValue}
-                    barColor={uvColor}
-                  />
-                </Box>
-                <Button sx={{
-                  background: '#6389a8',
-                  textTransform: 'none',
-                  color: '#000000',
-                  '&:hover': { background: '#6389a8' },
-                }}
-                  onClick={() => navigate('/forecast', { state: { lat: latitude, lon: longitude } })}
-                >
-                  Forecast Report
-                </Button>
-                <Button sx={{
-                  background: '#6389a8',
-                  textTransform: 'none',
-                  color: '#000000',
-                  '&:hover': { background: '#6389a8' },
-                }}
-                  onClick={() => navigate('/analytic', { state: { lat: latitude, lon: longitude } })}
-                >
-                  Analytics Report
-                </Button>
-                <Button sx={{
-                  background: '#6389a8',
-                  textTransform: 'none',
-                  color: '#000000',
-                  '&:hover': { background: '#6389a8' },
-                }}
-                  disableRipple
-                  onClick={handleDownloadPdf}
-                >
-                  Download PDF
-                </Button>
-              </Card>
+                Forecast Report
+              </Button>
+              <Button sx={{
+                background: '#6389a8',
+                textTransform: 'none',
+                color: '#000000',
+                '&:hover': { background: '#6389a8' },
+              }}
+                onClick={() => navigate('/analytic', { state: { lat: latitude, lon: longitude } })}
+              >
+                Analytics Report
+              </Button>
             </Box>
           </Grid>
-        ) : ('')}
-      </Grid>
+
+
+          <Grid item xs={12} sm={8} md={9} sx={{
+            background: '#6d97a3',
+            width: '100%',
+            height: 'auto',
+          }}>
+            <Box p={2}>
+              <Box sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexDirection: 'row'
+              }}>
+                <Typography variant="h6" fontWeight="bold" gutterBottom>
+                  Today's Forecast
+                </Typography>
+
+                <Button
+                  onClick={handleDownloadPdf}
+                  disableRipple
+                  size="small"
+                  sx={{
+                    background: '#FFFFFF',
+                    minWidth: '30px', // Controls the width
+                    height: '30px',
+                    padding: '4px',
+                    borderRadius: '6px',
+                    '&:hover': { background: '#FFFFFF' },
+                  }}
+                >
+                  <FileDownloadIcon fontSize="small" />
+                </Button>
+              </Box>
+
+              {/* Forecast */}
+              <Grid
+                container
+                spacing={1}
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  p: 0
+                }}
+              >
+                {todayForecasts.map((item, index) => (
+                  <Grid
+                    item
+                    xs={12}
+                    sm={6}
+                    md={1.5}
+                    key={index}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Card
+                      sx={{
+                        width: '100%',
+                        maxWidth: { xs: 500, sm: 250, md: 120 },
+                        padding: '16px',
+                        borderRadius: '16px',
+                        background: 'linear-gradient(145deg, #a0c4ff, #89affa)',
+                        boxShadow: '0px 8px 20px rgba(0, 0, 0, 0.2)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                        '&:hover': {
+                          transform: 'translateY(-5px)',
+                          boxShadow: '0px 12px 30px rgba(0, 0, 0, 0.3)',
+                        },
+                      }}
+                    >
+                      <Typography fontWeight="bold">{item.time}</Typography>
+                      {item.icon && (
+                        <img
+                          src={`https://openweathermap.org/img/wn/${item.icon}@2x.png`}
+                          alt={item.main}
+                          style={{ width: '50px', height: '50px' }}
+                        />
+                      )}
+                      <Typography variant="body2">{item.description}</Typography>
+                      <Typography fontWeight="bold">{item.temp}</Typography>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+
+            <Box p={2}>
+              <Typography variant="h6" fontWeight="bold" gutterBottom>
+                Today’s Highlights
+              </Typography>
+
+              <Grid container spacing={1} mt={1} mb={1}>
+                {/* UV Index */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Card sx={{ minHeight: '100px' }}>
+                    <CardContent>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        UV Index
+                      </Typography>
+                      <Box display="flex" alignItems="center" gap={2} mt={1}>
+                        <WbSunnyIcon fontSize="large" color="warning" />
+                        <Box>
+                          <Typography variant="h5" fontWeight="bold">{uvIndex}</Typography>
+                          <Typography variant="body2" color="text.secondary">{getUVIndexLevel(uvIndex)}</Typography>
+                        </Box>
+                      </Box>
+                      <Box mt={2}>
+                        <CustomLinearProgress value={uvIndexValue} />
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Wind Status */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Card sx={{ minHeight: '100px' }}>
+                    <CardContent>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Wind Status
+                      </Typography>
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
+                        <Typography variant="h5" fontWeight="bold">{weatherData?.wind?.speed || 0} km/h</Typography>
+                        <AirIcon fontSize="large" color="primary" />
+                      </Box>
+                      <Box display="flex" flexDirection="row" alignItems="center" gap={2} mt={1}>
+                        <Box
+                          sx={{
+                            width: 30,
+                            height: 30,
+                            border: '2px solid #ccc',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <NavigationIcon
+                            fontSize="small"
+                            style={{
+                              transform: `rotate(${weatherData?.wind?.deg || 0}deg)`,
+                              transition: 'transform 0.3s ease-in-out',
+                            }}
+                          />
+                        </Box>
+                        <Typography variant="body2" color="text.secondary">{getWindDirection(weatherData?.wind?.deg || 0)}</Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Sunrise & Sunset */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Card sx={{ minHeight: '150px' }}>
+                    <CardContent>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Sunrise & Sunset
+                      </Typography>
+                      <Box mt={2}>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <WbSunnyIcon color="warning" />
+                          <Typography variant="body2">{dayjs(weatherData.sys.sunrise * 1000).format('hh:mm A')}</Typography>
+                        </Box>
+                        <Box display="flex" alignItems="center" gap={1} mt={1}>
+                          <DarkModeIcon color="action" />
+                          <Typography variant="body2">{dayjs(weatherData.sys.sunset * 1000).format('hh:mm A')}</Typography>
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Humidity */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Card sx={{ minHeight: '100px' }}>
+                    <CardContent>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Humidity
+                      </Typography>
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
+                        <Typography variant="h5" fontWeight="bold">{Math.round(weatherData?.main.humidity || 0)}%</Typography>
+                        <WaterDropIcon fontSize="large" color="primary" />
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">{getHumidityLevel(Math.round(weatherData?.main.humidity || 0))}</Typography>
+                      <Box mt={2}>
+                        <LinearProgress
+                          variant="determinate"
+                          value={Math.round(weatherData?.main.humidity || 0)}
+                          sx={{ height: 8, borderRadius: 5 }}
+                          color="primary"
+                        />
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Visibility */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Card sx={{ minHeight: '100px' }}>
+                    <CardContent>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Visibility
+                      </Typography>
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mt={3}>
+                        <Typography variant="h5" fontWeight="bold">{Math.round((weatherData?.visibility || 0) / 1000)} km</Typography>
+                        <VisibilityIcon fontSize="large" color="action" />
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" mt={1}>{getVisibilityRange(Math.round((weatherData?.visibility || 0)))}</Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Air Quality */}
+                <Grid item xs={12} sm={6} md={4}>
+                  <Card sx={{ minHeight: '100px' }}>
+                    <CardContent>
+                      <Typography variant="subtitle2" color="text.secondary" display="flex" alignItems="center" justifyContent="space-between">
+                        Air Quality
+                        <Tooltip
+                          title={
+                            <Box>
+                              {components && (
+                                <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: '0.85rem' }}>
+                                  <thead>
+                                    <tr>
+                                      <th style={{ textAlign: 'left', padding: '2px', borderBottom: '1px solid #ccc' }}>Component</th>
+                                      <th style={{ textAlign: 'right', padding: '2px', borderBottom: '1px solid #ccc' }}>Value (μg/m³)</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    <tr><td style={{ padding: '2px', textAlign: 'left' }}>PM2.5</td><td style={{ padding: '2px', textAlign: 'right' }}>{components.pm2_5}</td></tr>
+                                    <tr><td style={{ padding: '2px', textAlign: 'left' }}>PM10</td><td style={{ padding: '2px', textAlign: 'right' }}>{components.pm10}</td></tr>
+                                    <tr><td style={{ padding: '2px', textAlign: 'left' }}>NO₂</td><td style={{ padding: '2px', textAlign: 'right' }}>{components.no2}</td></tr>
+                                    <tr><td style={{ padding: '2px', textAlign: 'left' }}>O₃</td><td style={{ padding: '2px', textAlign: 'right' }}>{components.o3}</td></tr>
+                                    <tr><td style={{ padding: '2px', textAlign: 'left' }}>SO₂</td><td style={{ padding: '2px', textAlign: 'right' }}>{components.so2}</td></tr>
+                                    <tr><td style={{ padding: '2px', textAlign: 'left' }}>CO</td><td style={{ padding: '2px', textAlign: 'right' }}>{components.co}</td></tr>
+                                  </tbody>
+                                </table>
+                              )}
+                            </Box>
+                          }
+                          arrow
+                          placement="top"
+                        >
+                          <InfoIcon sx={{ cursor: 'pointer', ml: 1 }} />
+                        </Tooltip>
+                      </Typography>
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mt={1}>
+                        <Typography variant="h5" fontWeight="bold">{airQuality}</Typography>
+                        <CloudIcon fontSize="medium" color="error" />
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">{getAirQuality(airQuality)}</Typography>
+                      <Box mt={2}>
+                        <LinearProgress
+                          variant="determinate"
+                          value={Math.round(airQuality * 20)}
+                          sx={{ height: 8, borderRadius: 5 }}
+                          color="warning"
+                        />
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+            </Box>
+          </Grid>
+        </Grid>
+      ) : ('')}
     </Box>
   )
 }
