@@ -8,9 +8,6 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YA
 function AnalyticsReport() {
     const apiKey = process.env.REACT_APP_WEATHER_API_KEY;
 
-    const theme = useTheme();
-    console.log(theme.palette.mode);
-
     const location = useLocation();
     const { lat, lon } = location.state || {};
 
@@ -52,13 +49,17 @@ function AnalyticsReport() {
         fetchData();
     }, []);
 
+
+    const theme = useTheme();
+    const backgroundColor = theme.palette.mode === 'dark' ? '#1C1C1E' : '#F2F2F7';
+    
     // 🧠 Custom Tooltip Component
     const CustomTooltip = ({ active, payload }: any) => {
         if (active && payload && payload.length) {
             const { fullTime, temp, icon, main } = payload[0].payload;
 
             return (
-                <div style={{ backgroundColor: '#fff', padding: '10px', border: '1px solid #ccc' }}>
+                <div style={{ backgroundColor: backgroundColor, padding: '10px', border: '0.5px solid #ccc' }}>
                     <p style={{ margin: 0 }}><strong>{fullTime}</strong></p>
                     <p style={{ margin: 0 }}>Temp: {temp}°C</p>
                     <div style={{

@@ -473,7 +473,6 @@ function SeeDetails() {
   };
 
   const theme = useTheme();
-  console.log(theme.palette.mode);
 
   const leftBackgroundColor = theme.palette.mode === 'dark' ? '#424242' : '#e0e0e0';
   const rightBackgroundColor = theme.palette.mode === 'dark' ? '#37474f' : '#6d97a3';
@@ -640,7 +639,9 @@ function SeeDetails() {
               <Button sx={{
                 background: '#6389a8',
                 textTransform: 'none',
-                // color: textColor,
+                color: textColor,
+                fontSize:'12px',
+                fontWeight:700,
                 '&:hover': { background: '#6389a8' },
               }}
                 onClick={() => navigate('/forecast', { state: { lat: latitude, lon: longitude } })}
@@ -650,7 +651,9 @@ function SeeDetails() {
               <Button sx={{
                 background: '#6389a8',
                 textTransform: 'none',
-                // color: textColor,
+                color: textColor,
+                fontSize:'12px',
+                fontWeight:700,
                 '&:hover': { background: '#6389a8' },
               }}
                 onClick={() => navigate('/analytic', { state: { lat: latitude, lon: longitude } })}
@@ -681,12 +684,13 @@ function SeeDetails() {
                   disableRipple
                   size="small"
                   sx={{
-                    background: '#FFFFFF',
-                    minWidth: '30px', // Controls the width
+                    background: '#6389a8',
+                    color: textColor,
+                    minWidth: '30px',
                     height: '30px',
                     padding: '4px',
                     borderRadius: '6px',
-                    '&:hover': { background: '#FFFFFF' },
+                    '&:hover': { background: '#6389a8' },
                   }}
                 >
                   <FileDownloadIcon fontSize="small" />

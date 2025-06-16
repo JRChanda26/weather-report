@@ -324,12 +324,12 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
   // });
   // const formattedDate = `${datePart}`;
 
-  const textColor = theme.palette.mode === 'dark' ? '#F2F2F7' : '#1C1C1E';
-  const toggleButtonColor = theme.palette.mode === 'dark' ? '#1C1C1E' : '#F2F2F7';
-
   const latitude = weatherData?.coord?.lat || 0;
   const longitude = weatherData?.coord?.lon || 0;
   // console.log(latitude, longitude)
+
+  const textColor = theme.palette.mode === 'dark' ? '#F2F2F7' : '#1C1C1E';
+  const toggleButtonColor = theme.palette.mode === 'dark' ? '#1C1C1E' : '#F2F2F7';
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -362,7 +362,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
     { label: 'Wind', value: windSpeed, icon: 'km/h' },
     { label: 'Feels', value: feelsTemp, icon: '°C' },
   ]
-  
+
   return (
     <Box>
       {weatherData ? (
@@ -370,9 +370,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
           sx={{
             width: '100vw',
             height: '100vh',
-            backgroundImage: darkMode
-              ? 'url("sky-background.jpg?dark")'
-              : 'url("sky-background.jpg")',
+            backgroundImage: 'url("sky-background.jpg")',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             color: '#fff',
@@ -387,7 +385,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
             sx={{
               position: 'absolute',
               inset: 0,
-              backgroundColor: darkMode ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.3)',
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.3)',
               zIndex: 1,
             }}
           />
@@ -423,11 +421,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
               <MaterialUISwitch
                 sx={{ m: 1 }}
                 checked={mode === 'dark'}
-                // onChange={handleToggle}
-                onChange={(e) => {
-                  handleToggle(e);
-                  setDarkMode(!darkMode);
-                }}
+                onChange={handleToggle}
               />
               <DarkModeIcon sx={{ color: toggleButtonColor }} />
             </Box>
