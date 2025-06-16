@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import axios from 'axios';
-import { Button, createTheme, Divider, IconButton, InputBase, Menu, MenuItem, Paper, Select, TextField, Typography, useTheme } from '@mui/material';
+import { Button, createTheme, Divider, Drawer, FormControl, FormControlLabel, IconButton, InputBase, InputLabel, Menu, MenuItem, Paper, Radio, RadioGroup, Select, Switch, TextField, Typography, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import NorthIcon from '@mui/icons-material/North';
@@ -17,6 +17,8 @@ import dayjs from 'dayjs';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
 import DirectionsIcon from '@mui/icons-material/Directions';
+import WbCloudyIcon from '@mui/icons-material/WbCloudy';
+import InfoIcon from '@mui/icons-material/Info';
 
 interface WeatherInfoProps {
   mode: 'light' | 'dark';
@@ -32,7 +34,8 @@ L.Icon.Default.mergeOptions({
 
 interface Weather {
   weather: { description: string; icon: string; main: string }[];
-  main: { temp: number, feels_like: number, temp_min: number, temp_max: number };
+  main: { temp: number, feels_like: number, temp_min: number, temp_max: number, humidity: number };
+  wind: { speed: number };
   name: string;
   dt: number;
   coord: { lon: number, lat: number };
@@ -99,6 +102,39 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
   const [searchedZipValue, setSearchedZipValue] = useState('');
   const [zipTyped, setZipTyped] = useState(false);
 
+  const [errors, setErrors] = useState<{ location?: string; zip?: string; country?: string }>({});
+
+  const validateZipForm = () => {
+    const newErrors: { zip?: string; country?: string } = {};
+
+    if (!searchZip.trim()) {
+      newErrors.zip = 'ZIP code is required';
+    } else if (!/^\d{4,10}$/.test(searchZip.trim())) {
+      newErrors.zip = 'Enter a valid ZIP code';
+    }
+
+    if (!selectedCountry) {
+      newErrors.country = 'Please select a country';
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0; // valid if no errors
+  };
+
+  const validateLocationForm = () => {
+    const newErrors: { location?: string } = {};
+
+    if (!searchLocation.trim()) {
+      newErrors.location = 'Location name is required';
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
+
   const handleZipSubmit = async () => {
     try {
       const response = await axios.get(
@@ -146,7 +182,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
           } else if (locationTyped) {
             setLocationName(searchedLocationValue)
             return;
-          }else if (zipTyped) {
+          } else if (zipTyped) {
             setLocationName(searchedZipValue)
             return;
           } else if (address.suburb) {
@@ -167,6 +203,8 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
   const [weatherVideo, setWeatherVideo] = useState('');
 
   useEffect(() => {
+    if (!locationName) return;
+    
     const fetchWeatherReport = async () => {
       try {
         const result = await axios.get(
@@ -174,55 +212,53 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
         );
         setWeatherData(result.data);
 
-        const mainWeather = result.data.weather[0].main;
+        // const mainWeather = result.data.weather[0].main;
 
-        switch (mainWeather.toLowerCase()) {
-          case 'clear':
-            setWeatherVideo('/sunny.mp4');
-            break;
+        // switch (mainWeather.toLowerCase()) {
+        //   case 'clear':
+        //     setWeatherVideo('/sunny.mp4');
+        //     break;
 
-          case 'clouds':
-            setWeatherVideo('/cloudy.mp4');
-            break;
+        //   case 'clouds':
+        //     setWeatherVideo('/cloudy.mp4');
+        //     break;
 
-          case 'rain':
-          case 'drizzle':
-            setWeatherVideo('/rainy.mp4');
-            break;
+        //   case 'rain':
+        //   case 'drizzle':
+        //     setWeatherVideo('/rainy.mp4');
+        //     break;
 
-          case 'thunderstorm':
-          case 'squall':
-          case 'tornado':
-            setWeatherVideo('/stormy.mp4');
-            break;
+        //   case 'thunderstorm':
+        //   case 'squall':
+        //   case 'tornado':
+        //     setWeatherVideo('/stormy.mp4');
+        //     break;
 
-          case 'snow':
-            setWeatherVideo('/snowy.mp4');
-            break;
+        //   case 'snow':
+        //     setWeatherVideo('/snowy.mp4');
+        //     break;
 
-          case 'mist':
-          case 'fog':
-          case 'haze':
-          case 'smoke':
-            setWeatherVideo('/foggy.mp4');
-            break;
+        //   case 'mist':
+        //   case 'fog':
+        //   case 'haze':
+        //   case 'smoke':
+        //     setWeatherVideo('/foggy.mp4');
+        //     break;
 
-          case 'dust':
-          case 'sand':
-          case 'ash':
-            setWeatherVideo('/dusty.mp4');
-            break;
+        //   case 'dust':
+        //   case 'sand':
+        //   case 'ash':
+        //     setWeatherVideo('/dusty.mp4');
+        //     break;
 
-          default:
-            setWeatherVideo('');
-            break;
-        }
+        //   default:
+        //     setWeatherVideo('');
+        //     break;
+        // }
 
-        // const videoFile = `/${mainWeather.toLowerCase()}.mp4`;
-        // setWeatherVideo(videoFile)
-        
       } catch (error) {
         console.error('Failed to fetch weather data:', error);
+        alert('Too Many Requests')
       }
     };
 
@@ -308,369 +344,382 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
 
   const [selectedOption, setSelectedOption] = useState(0);
 
+  const [darkMode, setDarkMode] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const [searchMode, setSearchMode] = useState<'location' | 'zip' | 'dropdown' | ''>('');
+
+  const maxTemp = Math.round(weatherData?.main.temp_max || 0)
+  const minTemp = Math.round(weatherData?.main.temp_min || 0)
+  const windSpeed = Math.round(weatherData?.wind.speed || 0)
+  const humidity = Math.round(weatherData?.main.humidity || 0)
+  const feelsTemp = Math.round(weatherData?.main.feels_like || 0)
+
+  const currentData = [
+    { label: 'Max', value: maxTemp, icon: '°C' },
+    { label: 'Min', value: minTemp, icon: '°C' },
+    { label: 'Humidity', value: humidity, icon: '%' },
+    { label: 'Wind', value: windSpeed, icon: 'km/h' },
+    { label: 'Feels', value: feelsTemp, icon: '°C' },
+  ]
+  
   return (
-    <Box sx={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden', }}>
-      {/* Background Video */}
-      {/* <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-        }}
-      >
-        <source src="weather_video.mp4" type="video/mp4" />
-      </video> */}
-      {weatherVideo && (
-        <video autoPlay muted loop key={weatherVideo} style={{ width: '100%', height: 'auto', objectFit: 'cover', }}>
-          <source src={weatherVideo} type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-      )}
-      {/* <MapContainer
-        center={[latitude, longitude]}
-        zoom={2}
-        zoomControl={false}
-        scrollWheelZoom={false}
-        doubleClickZoom={false}
-        dragging={true}
-        style={{ height: '100%', width: '100%', zIndex: 0 }}
-      > */}
-
-      {/* OpenStreetMap base layer */}
-      {/* <TileLayer
-          attribution=''
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        /> */}
-
-      {/* OpenWeather temperature overlay */}
-      {/* <TileLayer
-          attribution=''
-          url={`https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=${apiKey}`}
-          opacity={2}
-        /> */}
-
-      {/* <Marker position={[latitude, longitude]}>
-          <Popup>
-            {weatherData?.name} <br />{Math.round(weatherData?.main?.temp || 0)}°C
-          </Popup>
-        </Marker>
-      </MapContainer> */}
-
-      {/* Overlay Content */}
+    <Box>
       {weatherData ? (
-        <Box>
-          <Box sx={{
-            position: 'absolute',
-            top: '0%',
-            left: '0%',
-            zIndex: 1,
+        <Box
+          sx={{
+            width: '100vw',
+            height: '100vh',
+            backgroundImage: darkMode
+              ? 'url("sky-background.jpg?dark")'
+              : 'url("sky-background.jpg")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
             color: '#fff',
-            maxWidth: '90%',
             display: 'flex',
-            justifyContent: 'space-between',
-            flexDirection: 'row'
-          }}>
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+          }}
+        >
+          {/* Overlay */}
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: darkMode ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.3)',
+              zIndex: 1,
+            }}
+          />
 
-            <Box>
-              <IconButton
-                id="basic-button"
-                aria-controls={open ? 'basic-menu' : undefined}
-                aria-haspopup="true"
-                aria-expanded={open ? 'true' : undefined}
-                onClick={handleMenuClick}
-                sx={{ color: '#000' }}
-              >
-                <MenuIcon sx={{color:textColor}}/>
-              </IconButton>
-              <Menu
-                id="basic-menu"
-                anchorEl={anchorEl}
-                open={open}
-                onClose={handleClose}
-              >
-                <MenuItem onClick={() => { setSelectedOption(1); handleClose(); }}>
-                  Search location name
-                </MenuItem>
-                <MenuItem onClick={() => { setSelectedOption(2); handleClose(); }}>
-                  Search zip code with select country
-                </MenuItem>
-                <MenuItem onClick={() => { setSelectedOption(3); handleClose(); }}>
-                  Select city
-                </MenuItem>
-              </Menu>
-            </Box>
-
-            {selectedOption === 1 && (
-              <Box>
-                <Paper
-                  component="form"
-                  sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: 400 }}
-                >
-                  <InputBase
-                    sx={{ ml: 1, flex: 1 }}
-                    placeholder="Search location"
-                    inputProps={{ 'aria-label': 'search google maps' }}
-                    value={searchLocation}
-                    onChange={(event: any) => {
-                      setSearchLocation(event.target.value)
-                    }}
-                  />
-                  <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
-                    <SearchIcon onClick={handleLocationSubmit} />
-                  </IconButton>
-                </Paper>
-              </Box>
-            )}
-
-            {selectedOption === 2 && (
-              <Box>
-                <Select
-                  value={selectedCountry}
-                  onChange={(e) => setSelectedCountry(e.target.value)}
-                  displayEmpty
-                  sx={{
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      border: 'none',
-                    },
-                    background: 'transparent',
-                  }}
-                >
-                  <MenuItem value="">Select Country</MenuItem>
-                  {countries.map((country) => (
-                    <MenuItem key={country.isoCode} value={country.isoCode}>
-                      {country.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-
-                <TextField
-                  id="standard-basic"
-                  variant="standard"
-                  placeholder='zip code'
-                  value={searchZip}
-                  onChange={(event) => setSearchZip(event.target.value)} />
-
-                <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
-                  <SearchIcon onClick={handleZipSubmit} />
-                </IconButton>
-              </Box>
-            )}
-
-            {selectedOption === 3 && (
-              <Box>
-                <Select
-                  value={selectedCountry}
-                  onChange={(e) => setSelectedCountry(e.target.value)}
-                  displayEmpty
-                  sx={{
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      border: 'none',
-                    },
-                    background: 'transparent',
-                  }}
-                >
-                  <MenuItem value="">Select Country</MenuItem>
-                  {countries.map((country) => (
-                    <MenuItem key={country.isoCode} value={country.isoCode}>
-                      {country.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-
-                {states.length > 0 && (
-                  <Select
-                    value={selectedState}
-                    onChange={(e) => setSelectedState(e.target.value)}
-                    displayEmpty
-                    sx={{
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        border: 'none',
-                      },
-                      background: 'transparent',
-                    }}
-                  >
-                    <MenuItem value="">Select State</MenuItem>
-                    {states.map((state) => (
-                      <MenuItem key={state.isoCode} value={state.isoCode}>
-                        {state.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                )}
-
-                {cities.length > 0 && (
-                  <Select
-                    value={selectedCity}
-                    onChange={(e) => {
-                      setSelectedCity(e.target.value)
-                      setClicked(true)
-                    }}
-                    displayEmpty
-                    sx={{
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        border: 'none',
-                      },
-                      background: 'transparent',
-                    }}
-                  >
-                    <MenuItem value="">Select City</MenuItem>
-                    {cities.map((city) => (
-                      <MenuItem key={city.name} value={city.name}>
-                        {city.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                )}
-
-                {/* Show selected location */}
-                {/* {selectedCountry && selectedState && selectedCity && (
-          <div style={{ marginTop: "1rem" }}>
-            Selected Location: {selectedCountry} / {selectedState} / {selectedCity}
-          </div>
-        )} */}
-              </Box>
-            )}
-
-            {/* <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}
-            >
+          {/* === Top Bar === */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 3,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              px: 2,
+              py: 1,
+            }}
+          >
+            {/* Theme Switch */}
+            <Box sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 1
+            }}>
+              {/* <Switch
+                checked={darkMode}
+                onChange={() => setDarkMode(!darkMode)}
+                color="default"
+              /> */}
               <LightModeIcon sx={{ color: toggleButtonColor }} />
               <MaterialUISwitch
                 sx={{ m: 1 }}
                 checked={mode === 'dark'}
-                onChange={handleToggle}
+                // onChange={handleToggle}
+                onChange={(e) => {
+                  handleToggle(e);
+                  setDarkMode(!darkMode);
+                }}
               />
               <DarkModeIcon sx={{ color: toggleButtonColor }} />
-            </Box> */}
-          </Box>
+            </Box>
 
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '0%',
-              left: '92%',
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-            }}
-          >
-            <LightModeIcon sx={{ color: toggleButtonColor }} />
-            <MaterialUISwitch
-              sx={{ m: 1 }}
-              checked={mode === 'dark'}
-              onChange={handleToggle}
-            />
-            <DarkModeIcon sx={{ color: toggleButtonColor }} />
-          </Box>
-
-          <Box
-            sx={{
-              position: 'absolute',
-              top: { xs: '10%', sm: '15%', md: '20%' },
-              left: { xs: '5%', sm: '8%', md: '10%' },
-              zIndex: 1,
-              color: '#fff',
-              maxWidth: '90%',
-            }}
-          >
-            {/* Location */}
-            <Typography
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontSize: { xs: '16px', sm: '18px', md: '20px' },
-                fontWeight: 700,
-                color: textColor
-              }}
+            {/* Menu Icon */}
+            <IconButton
+              onClick={() => setDrawerOpen(true)}
+              sx={{ color: textColor }}
             >
-              <LocationOnIcon /> {weatherData.name}
+              <MenuIcon />
+            </IconButton>
+          </Box>
+
+          {/* === Drawer === */}
+          <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+            <Box sx={{ width: 320, p: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                Search Location
+              </Typography>
+
+              {/* Step 1: Choose method */}
+              <RadioGroup
+                value={searchMode}
+                onChange={(e) => setSearchMode(e.target.value as any)}
+                sx={{ mb: 2 }}
+              >
+                <FormControlLabel value="location" control={<Radio />} label="Search by Location" onClick={() => {
+                  setSelectedCountry("")
+                  setSelectedState("")
+                  setSelectedCity("")
+                  setSearchZip("")
+                  setSearchLocation("")
+                }} />
+                <FormControlLabel value="zip" control={<Radio />} label="Search by ZIP + Select Country" onClick={() => {
+                  setSelectedCountry("")
+                  setSelectedState("")
+                  setSelectedCity("")
+                  setSearchZip("")
+                  setSearchLocation("")
+                }} />
+                <FormControlLabel value="dropdown" control={<Radio />} label="Select Country, State, City" onClick={() => {
+                  setSelectedCountry("")
+                  setSelectedState("")
+                  setSelectedCity("")
+                  setSearchZip("")
+                  setSearchLocation("")
+                }} />
+              </RadioGroup>
+
+              {/* Step 2: Show relevant inputs */}
+              {searchMode === 'location' && (
+                <Box>
+                  <TextField
+                    fullWidth
+                    label="Location Name"
+                    margin="normal"
+                    value={searchLocation}
+                    onChange={(event: any) => {
+                      setSearchLocation(event.target.value)
+                    }}
+                    error={!!errors.location}
+                    helperText={errors.location}
+                  />
+
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    // onClick={() => {
+                    //   handleLocationSubmit()
+                    //   setDrawerOpen(false);
+                    // }}
+                    onClick={() => {
+                      if (validateLocationForm()) {
+                        handleLocationSubmit();
+                        setDrawerOpen(false);
+                      }
+                    }}
+                    sx={{ mt: 2 }}
+                  >
+                    Search
+                  </Button>
+                </Box>
+              )}
+
+              {searchMode === 'zip' && (
+                <Box>
+                  {/* <TextField
+                    fullWidth
+                    label="ZIP Code"
+                    value={zipCode}
+                    onChange={(e) => setZipCode(e.target.value)}
+                    margin="normal"
+                  /> */}
+                  <TextField
+                    fullWidth
+                    label="ZIP Code"
+                    margin="normal"
+                    value={searchZip}
+                    onChange={(event) => setSearchZip(event.target.value)}
+                    error={!!errors.zip}
+                    helperText={errors.zip}
+                  />
+
+                  <FormControl fullWidth margin="normal" error={!!errors.country}>
+                    <Select
+                      value={selectedCountry}
+                      onChange={(e) => setSelectedCountry(e.target.value)}
+                      displayEmpty
+                      sx={{
+                        // '& .MuiOutlinedInput-notchedOutline': {
+                        //   border: 'none',
+                        // },
+                        background: 'transparent',
+                      }}
+                    >
+                      <MenuItem value="">Select Country</MenuItem>
+                      {countries.map((country) => (
+                        <MenuItem key={country.isoCode} value={country.isoCode}>
+                          {country.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {errors.country && (
+                      <Typography variant="caption" color="error">
+                        {errors.country}
+                      </Typography>
+                    )}
+                  </FormControl>
+
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    // onClick={() => {
+                    //   handleZipSubmit()
+                    //   setDrawerOpen(false);
+                    // }}
+                    onClick={() => {
+                      if (validateZipForm()) {
+                        handleZipSubmit();
+                        setDrawerOpen(false);
+                      }
+                    }}
+                    sx={{ mt: 2 }}
+                  >
+                    Search
+                  </Button>
+                </Box>
+              )}
+
+              {searchMode === 'dropdown' && (
+                <Box>
+                  <FormControl fullWidth margin="normal">
+                    <Select
+                      value={selectedCountry}
+                      onChange={(e) => setSelectedCountry(e.target.value)}
+                      displayEmpty
+                      sx={{
+                        // '& .MuiOutlinedInput-notchedOutline': {
+                        //   border: 'none',
+                        // },
+                        background: 'transparent',
+                      }}
+                    >
+                      <MenuItem value="">Select Country</MenuItem>
+                      {countries.map((country) => (
+                        <MenuItem key={country.isoCode} value={country.isoCode}>
+                          {country.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl fullWidth margin="normal">
+                    {states.length > 0 && (
+                      <Select
+                        value={selectedState}
+                        onChange={(e) => setSelectedState(e.target.value)}
+                        displayEmpty
+                        sx={{
+                          // '& .MuiOutlinedInput-notchedOutline': {
+                          //   border: 'none',
+                          // },
+                          background: 'transparent',
+                        }}
+                      >
+                        <MenuItem value="">Select State</MenuItem>
+                        {states.map((state) => (
+                          <MenuItem key={state.isoCode} value={state.isoCode}>
+                            {state.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    )}
+                  </FormControl>
+
+                  <FormControl fullWidth margin="normal">
+                    {cities.length > 0 && (
+                      <Select
+                        value={selectedCity}
+                        onChange={(e) => {
+                          setSelectedCity(e.target.value)
+                          setClicked(true)
+                          setDrawerOpen(false);
+                        }}
+                        displayEmpty
+                        sx={{
+                          // '& .MuiOutlinedInput-notchedOutline': {
+                          //   border: 'none',
+                          // },
+                          background: 'transparent',
+                        }}
+                      >
+                        <MenuItem value="">Select City</MenuItem>
+                        {cities.map((city) => (
+                          <MenuItem key={city.name} value={city.name}>
+                            {city.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    )}
+                  </FormControl>
+                </Box>
+              )}
+            </Box>
+          </Drawer>
+
+          {/* === Centered Content === */}
+          <Box
+            sx={{
+              zIndex: 2,
+              textAlign: 'center',
+              px: { xs: 2, sm: 4 },
+              width: '100%',
+              maxWidth: 600,
+            }}
+          >
+            <Typography sx={{ fontSize: { xs: '0.8rem', sm: '1rem' }, mb: 2, color: textColor }}>
+              {dayjs(weatherData.dt * 1000).format('dddd, MMMM D')} | {weatherData.name}
             </Typography>
 
-            {/* Weather icon and temps */}
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 2,
+                mb: 3,
+              }}
+            >
+              <Box>
+                <Typography variant="h1" sx={{ fontSize: { xs: '4rem', sm: '6rem' }, fontWeight: 300, color: textColor }}>
+                  {Math.round(weatherData.main.temp)}°
+                </Typography>
+                <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.3rem' }, color: textColor }}>
+                  {weatherData.weather[0].description}
+                </Typography>
+              </Box>
+
+              {/* <WbCloudyIcon sx={{ fontSize: { xs: 80, sm: 100 }, color: '#ffeb3b' }} /> */}
               <img
                 src={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}
                 alt="Weather Icon"
-                style={{ width: '60px', height: '60px' }}
+                style={{ width: '100px', height: '100px' }}
               />
-              <Box ml={2}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography sx={{ fontSize: { xs: '14px' }, fontWeight: 700, color: textColor }}>
-                    <NorthIcon sx={{ fontSize: '16px' }} />
-                    {Math.round(weatherData.main.temp_max)}°
-                  </Typography>
-                  <hr
-                    style={{
-                      width: '20px',
-                      transform: 'rotate(90deg)',
-                      border: '1px solid #10aade',
-                    }}
-                  />
-                  <Typography sx={{ fontSize: { xs: '14px' }, fontWeight: 700, color: textColor }}>
-                    {Math.round(weatherData.main.temp_min)}°
-                    <SouthIcon sx={{ fontSize: '16px' }} />
-                  </Typography>
-                </Box>
-
-                {/* Feels like */}
-                <Typography sx={{ mt: 1, fontSize: { xs: '14px' }, fontWeight: 700, color: textColor }}>
-                  Feels Like: {Math.round(weatherData.main.feels_like)}°
-                </Typography>
-              </Box>
             </Box>
 
-            {/* Weather Description */}
-            <Typography
+            <Box
               sx={{
-                mt: 1,
-                fontSize: { xs: '14px' },
-                fontWeight: 700,
-                textTransform: 'capitalize',
-                color: textColor
+                display: 'flex',
+                justifyContent: 'space-around',
+                textAlign: 'center',
+                flexWrap: 'wrap',
+                gap: 2,
               }}
             >
-              {weatherData.weather[0].description}
-            </Typography>
+              {currentData.map((item, idx) => (
+                <Box key={idx}>
+                  <Typography sx={{ color: textColor }}>{item.value} {item.icon}</Typography>
+                  <Typography variant="caption" sx={{ color: textColor }}>
+                    {item.label}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
 
-            {/* Date */}
-            <Typography sx={{ fontSize: '14px', mb: 1, color: textColor }}>
-              {/* {dayOfWeek}, {formattedDate} */}
-              {dayjs(weatherData.dt * 1000).format('dddd, MMMM D')}
-            </Typography>
+            <IconButton onClick={() => navigate('/details', { state: locationName })}>
+              <InfoIcon />
+            </IconButton>
 
-            {/* Temperature */}
-            <Typography sx={{ fontSize: { xs: '20px' }, fontWeight: 700, color: textColor }}>
-              {Math.round(weatherData.main.temp)}°C
-            </Typography>
-
-            {/* Button */}
-            <Button
-              onClick={() => navigate('/details', { state: locationName })}
-              sx={{
-                mt: 1,
-                background: '#10aade',
-                color: textColor,
-                textTransform: 'none',
-                fontSize: '14px',
-                fontWeight: 600,
-                px: 2,
-                '&:hover': {
-                  background: '#10aade',
-                },
-              }}
-            >
-              See Details
-            </Button>
           </Box>
+
         </Box>
       ) : ('')}
     </Box>

@@ -1,4 +1,4 @@
-import { Box, Button, Card, CardContent, FormControl, Grid, MenuItem, Select, SelectChangeEvent, styled, Tab, Tabs, Tooltip, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, FormControl, Grid, MenuItem, Select, SelectChangeEvent, styled, Tab, Tabs, Tooltip, Typography, useTheme } from '@mui/material';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 import AirIcon from '@mui/icons-material/Air';
@@ -25,6 +25,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import dayjs from 'dayjs';
 import CloudIcon from '@mui/icons-material/Cloud';
+import { color } from 'html2canvas/dist/types/css/types/color';
 
 // Set default icon paths manually without touching _getIconUrl
 L.Icon.Default.mergeOptions({
@@ -471,13 +472,20 @@ function SeeDetails() {
     setTabValue(newValue);
   };
 
+  const theme = useTheme();
+  console.log(theme.palette.mode);
+
+  const leftBackgroundColor = theme.palette.mode === 'dark' ? '#424242' : '#e0e0e0';
+  const rightBackgroundColor = theme.palette.mode === 'dark' ? '#37474f' : '#6d97a3';
+  const textColor = theme.palette.mode === 'dark' ? '#F2F2F7' : '#1C1C1E';
+
   return (
     <Box>
       {weatherData ? (
         <Grid container ref={printRef}>
           <ToastContainer />
           <Grid item xs={12} sm={4} md={3} sx={{
-            background: 'grey',
+            background: leftBackgroundColor,
             width: '100%',
             height: 'auto',
             display: 'flex',
@@ -632,7 +640,7 @@ function SeeDetails() {
               <Button sx={{
                 background: '#6389a8',
                 textTransform: 'none',
-                color: '#000000',
+                // color: textColor,
                 '&:hover': { background: '#6389a8' },
               }}
                 onClick={() => navigate('/forecast', { state: { lat: latitude, lon: longitude } })}
@@ -642,7 +650,7 @@ function SeeDetails() {
               <Button sx={{
                 background: '#6389a8',
                 textTransform: 'none',
-                color: '#000000',
+                // color: textColor,
                 '&:hover': { background: '#6389a8' },
               }}
                 onClick={() => navigate('/analytic', { state: { lat: latitude, lon: longitude } })}
@@ -654,7 +662,7 @@ function SeeDetails() {
 
 
           <Grid item xs={12} sm={8} md={9} sx={{
-            background: '#6d97a3',
+            background: rightBackgroundColor,
             width: '100%',
             height: 'auto',
           }}>
