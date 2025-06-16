@@ -18,7 +18,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
-import ReactSpeedometer from 'react-d3-speedometer';
+// import ReactSpeedometer from 'react-d3-speedometer';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { toast, ToastContainer } from 'react-toastify';
