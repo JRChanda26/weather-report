@@ -1,4 +1,4 @@
-import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow } from '@mui/material';
+import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, useTheme } from '@mui/material';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import React, { useEffect, useState } from 'react';
@@ -8,6 +8,9 @@ function ForecastReport() {
     const [forecastData, setForecastData] = useState([]);
     const apiKey = process.env.REACT_APP_WEATHER_API_KEY;
 
+    const theme = useTheme();
+    console.log(theme.palette.mode);
+      
     const location = useLocation();
     const { lat, lon } = location.state || {};
 
