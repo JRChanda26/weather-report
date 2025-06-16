@@ -7,9 +7,6 @@ import { useLocation } from 'react-router-dom';
 function ForecastReport() {
     const [forecastData, setForecastData] = useState([]);
     const apiKey = process.env.REACT_APP_WEATHER_API_KEY;
-
-    const theme = useTheme();
-    console.log(theme.palette.mode);
       
     const location = useLocation();
     const { lat, lon } = location.state || {};

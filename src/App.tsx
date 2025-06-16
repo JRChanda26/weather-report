@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import WeatherInfo from './WeatherInfo';
 import SeeDetails from './SeeDetails';
@@ -10,7 +10,27 @@ import ForecastReport from './ForecastReport';
 import AnalyticsReport from './AnalyticsReport';
 
 function App() {
-  const [mode, setMode] = useState<'light' | 'dark'>('light');
+  // const [mode, setMode] = useState<'light' | 'dark'>('light');
+
+  // const theme = useMemo(() =>
+  //   createTheme({
+  //     palette: { mode },
+  //   }), [mode]
+  // );
+
+  // const handleToggle = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   setMode(event.target.checked ? 'dark' : 'light');
+  // };
+
+  const [mode, setMode] = useState<'light' | 'dark'>(() => {
+  const savedMode = localStorage.getItem('themeMode');
+  return (savedMode === 'dark' || savedMode === 'light') ? savedMode : 'light';
+});
+
+  useEffect(() => {
+    // Save to localStorage whenever mode changes
+    localStorage.setItem('themeMode', mode);
+  }, [mode]);
 
   const theme = useMemo(() =>
     createTheme({
