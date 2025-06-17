@@ -385,7 +385,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
             sx={{
               position: 'absolute',
               inset: 0,
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.3)',
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.1)',
               zIndex: 1,
             }}
           />
