@@ -8,6 +8,7 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import MaterialUISwitch from './MaterialUISwitch';
 import ForecastReport from './ForecastReport';
 import AnalyticsReport from './AnalyticsReport';
+import { Helmet } from 'react-helmet';
 
 function App() {
   // const [mode, setMode] = useState<'light' | 'dark'>('light');
@@ -44,6 +45,16 @@ function App() {
 
   return (
     <>
+    {/* SEO */}
+    <Helmet>
+        <title>CheckWeather</title>
+        <meta name="description" content="Get real-time weather updates for any city." />
+        <meta name="keywords" content="weather, forecast, rain, temperature, CheckWeather, climate, real-time weather" />
+        <meta property="og:title" content="CheckWeather" />
+        <meta property="og:description" content="Accurate weather updates in real-time." />
+      </Helmet>
+      {/* SEO */}
+
       <ThemeProvider theme={theme}>
         <CssBaseline />
         {/* <Box
