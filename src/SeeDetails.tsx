@@ -1,4 +1,4 @@
-import { Box, Button, Card, CardContent, FormControl, Grid, MenuItem, Select, SelectChangeEvent, styled, Tab, Tabs, Tooltip, Typography, useTheme } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, FormControl, Grid, MenuItem, Select, SelectChangeEvent, Snackbar, styled, Tab, Tabs, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 import AirIcon from '@mui/icons-material/Air';
@@ -55,6 +55,8 @@ function SeeDetails() {
   const navigate = useNavigate();
 
   const printRef = useRef<HTMLDivElement>(null);
+
+  const theme = useTheme();
 
   const [uvIndex, setUvIndex] = useState(0);
 
@@ -156,7 +158,16 @@ function SeeDetails() {
     }
   }, [weatherData]);
 
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const isVerticalScreen = useMediaQuery(theme.breakpoints.down('md'));
+
   const handleDownloadPdf = async () => {
+
+    if (isVerticalScreen) {
+      setSnackbarOpen(true);
+      return;
+    }
 
     if (!printRef.current) return;
 
@@ -472,12 +483,10 @@ function SeeDetails() {
     setTabValue(newValue);
   };
 
-  const theme = useTheme();
-
   const leftBackgroundColor = theme.palette.mode === 'dark' ? '#424242' : '#e0e0e0';
   const rightBackgroundColor = theme.palette.mode === 'dark' ? '#37474f' : '#6d97a3';
   const textColor = theme.palette.mode === 'dark' ? '#F2F2F7' : '#1C1C1E';
-
+  
   return (
     <Box>
       {weatherData ? (
@@ -640,8 +649,8 @@ function SeeDetails() {
                 background: '#6389a8',
                 textTransform: 'none',
                 color: textColor,
-                fontSize:'12px',
-                fontWeight:700,
+                fontSize: '12px',
+                fontWeight: 700,
                 '&:hover': { background: '#6389a8' },
               }}
                 onClick={() => navigate('/forecast', { state: { lat: latitude, lon: longitude } })}
@@ -652,8 +661,8 @@ function SeeDetails() {
                 background: '#6389a8',
                 textTransform: 'none',
                 color: textColor,
-                fontSize:'12px',
-                fontWeight:700,
+                fontSize: '12px',
+                fontWeight: 700,
                 '&:hover': { background: '#6389a8' },
               }}
                 onClick={() => navigate('/analytic', { state: { lat: latitude, lon: longitude } })}
@@ -933,6 +942,18 @@ function SeeDetails() {
                 </Grid>
               </Grid>
             </Box>
+
+            <Snackbar
+              open={snackbarOpen}
+              autoHideDuration={4000}
+              onClose={() => setSnackbarOpen(false)}
+              anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+              <Alert onClose={() => setSnackbarOpen(false)} severity="info" sx={{ width: '100%' }}>
+                Please use a laptop or desktop for better PDF experience.
+              </Alert>
+            </Snackbar>
+
           </Grid>
         </Grid>
       ) : ('')}
