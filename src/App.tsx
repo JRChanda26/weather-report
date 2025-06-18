@@ -10,6 +10,8 @@ import ForecastReport from './ForecastReport';
 import AnalyticsReport from './AnalyticsReport';
 import { Helmet } from 'react-helmet';
 import SeoMeta from './SeoMeta';
+import Signup from './Signup';
+import Login from './Login';
 
 function App() {
   // const [mode, setMode] = useState<'light' | 'dark'>('light');
@@ -76,6 +78,8 @@ function App() {
             <Route path="/details" element={<SeeDetails />} />
             <Route path="/forecast" element={<ForecastReport />} />
             <Route path="/analytic" element={<AnalyticsReport />} />
+            {/* <Route path="/signup" element={<Signup />} />
+            <Route path="/login" element={<Login />} /> */}
           </Routes>
         </Router>
       </ThemeProvider>
@@ -84,3 +88,12 @@ function App() {
 }
 
 export default App;
+
+
+// const [user, setUser] = useState(null);
+
+//   useEffect(() => {
+//     onAuthStateChanged(auth, (u) => setUser(u));
+//   }, []);
+
+//   return user ? <WeatherDashboard /> : <Login />;
