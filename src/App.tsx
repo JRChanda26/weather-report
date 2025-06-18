@@ -9,6 +9,7 @@ import MaterialUISwitch from './MaterialUISwitch';
 import ForecastReport from './ForecastReport';
 import AnalyticsReport from './AnalyticsReport';
 import { Helmet } from 'react-helmet';
+import SeoMeta from './SeoMeta';
 
 function App() {
   // const [mode, setMode] = useState<'light' | 'dark'>('light');
@@ -24,9 +25,9 @@ function App() {
   // };
 
   const [mode, setMode] = useState<'light' | 'dark'>(() => {
-  const savedMode = localStorage.getItem('themeMode');
-  return (savedMode === 'dark' || savedMode === 'light') ? savedMode : 'light';
-});
+    const savedMode = localStorage.getItem('themeMode');
+    return (savedMode === 'dark' || savedMode === 'light') ? savedMode : 'light';
+  });
 
   useEffect(() => {
     // Save to localStorage whenever mode changes
@@ -45,15 +46,8 @@ function App() {
 
   return (
     <>
-    {/* SEO */}
-    <Helmet>
-        <title>CheckWeather</title>
-        <meta name="description" content="Get real-time weather updates for any city." />
-        <meta name="keywords" content="weather, forecast, rain, temperature, CheckWeather, climate, real-time weather" />
-        <meta property="og:title" content="CheckWeather" />
-        <meta property="og:description" content="Accurate weather updates in real-time." />
-      </Helmet>
       {/* SEO */}
+      <SeoMeta />
 
       <ThemeProvider theme={theme}>
         <CssBaseline />
