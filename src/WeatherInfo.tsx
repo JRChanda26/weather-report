@@ -19,6 +19,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import DirectionsIcon from '@mui/icons-material/Directions';
 import WbCloudyIcon from '@mui/icons-material/WbCloudy';
 import InfoIcon from '@mui/icons-material/Info';
+import { auth } from './FirebaseConfig';
+import AuthenticationModal from './AuthenticationModal';
 
 interface WeatherInfoProps {
   mode: 'light' | 'dark';
@@ -204,7 +206,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
 
   useEffect(() => {
     if (!locationName) return;
-    
+
     const fetchWeatherReport = async () => {
       try {
         const result = await axios.get(
@@ -363,6 +365,16 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
     { label: 'Feels', value: feelsTemp, icon: '°C' },
   ]
 
+  const [openModal, setOpenModal] = useState(false);
+
+  const handleClick = () => {
+    if (auth.currentUser) {
+      window.location.href = '/details'; // or use useNavigate()
+    } else {
+      setOpenModal(true);
+    }
+  };
+
   return (
     <Box>
       {weatherData ? (
@@ -387,6 +399,8 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
               inset: 0,
               backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.1)',
               zIndex: 1,
+              transition: 'backdrop-filter 0.3s ease-in-out',
+              backdropFilter: openModal ? 'blur(3px)' : 'none',
             }}
           />
 
@@ -417,13 +431,17 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
                 onChange={() => setDarkMode(!darkMode)}
                 color="default"
               /> */}
-              <LightModeIcon sx={{ color: toggleButtonColor }} />
-              <MaterialUISwitch
-                sx={{ m: 1 }}
-                checked={mode === 'dark'}
-                onChange={handleToggle}
-              />
-              <DarkModeIcon sx={{ color: toggleButtonColor }} />
+              {openModal ? ('') : (
+                <>
+                  <LightModeIcon sx={{ color: toggleButtonColor }} />
+                  <MaterialUISwitch
+                    sx={{ m: 1 }}
+                    checked={mode === 'dark'}
+                    onChange={handleToggle}
+                  />
+                  <DarkModeIcon sx={{ color: toggleButtonColor }} />
+                </>
+              )}
             </Box>
 
             {/* Menu Icon */}
@@ -431,7 +449,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
               onClick={() => setDrawerOpen(true)}
               sx={{ color: textColor }}
             >
-              <MenuIcon />
+              {openModal ? '' : <MenuIcon />}
             </IconButton>
           </Box>
 
@@ -454,6 +472,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
                   setSelectedCity("")
                   setSearchZip("")
                   setSearchLocation("")
+                  setErrors({})
                 }} />
                 <FormControlLabel value="zip" control={<Radio />} label="Search by ZIP + Select Country" onClick={() => {
                   setSelectedCountry("")
@@ -461,6 +480,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
                   setSelectedCity("")
                   setSearchZip("")
                   setSearchLocation("")
+                  setErrors({})
                 }} />
                 <FormControlLabel value="dropdown" control={<Radio />} label="Select Country, State, City" onClick={() => {
                   setSelectedCountry("")
@@ -468,6 +488,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
                   setSelectedCity("")
                   setSearchZip("")
                   setSearchLocation("")
+                  setErrors({})
                 }} />
               </RadioGroup>
 
@@ -499,7 +520,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
                         setDrawerOpen(false);
                       }
                     }}
-                    sx={{ mt: 2 }}
+                    sx={{ mt: 2, backgroundColor: '#00bcd4', color: '#000', borderRadius: 2, '&:hover': { background: '#00bcd4' }, }}
                   >
                     Search
                   </Button>
@@ -545,7 +566,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
                       ))}
                     </Select>
                     {errors.country && (
-                      <Typography variant="caption" color="error">
+                      <Typography variant="caption" color="error" ml={2}>
                         {errors.country}
                       </Typography>
                     )}
@@ -564,7 +585,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
                         setDrawerOpen(false);
                       }
                     }}
-                    sx={{ mt: 2 }}
+                    sx={{ mt: 2, backgroundColor: '#00bcd4', color: '#000', borderRadius: 2, '&:hover': { background: '#00bcd4' }, }}
                   >
                     Search
                   </Button>
@@ -648,6 +669,9 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
             </Box>
           </Drawer>
 
+          {/* === Modal === */}
+          <AuthenticationModal open={openModal} handleClose={() => setOpenModal(false)} />
+
           {/* === Centered Content === */}
           <Box
             sx={{
@@ -658,62 +682,67 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
               maxWidth: 600,
             }}
           >
-            <Typography sx={{ fontSize: { xs: '0.8rem', sm: '1rem' }, mb: 2, color: textColor }}>
-              {dayjs(weatherData.dt * 1000).format('dddd, MMMM D')} | {weatherData.name}
-            </Typography>
-
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 2,
-                mb: 3,
-              }}
-            >
-              <Box>
-                <Typography variant="h1" sx={{ fontSize: { xs: '4rem', sm: '6rem' }, fontWeight: 300, color: textColor }}>
-                  {Math.round(weatherData.main.temp)}°
+            {openModal ? ('') : (
+              <>
+                <Typography sx={{ fontSize: { xs: '0.8rem', sm: '1rem' }, mb: 2, color: textColor }}>
+                  {dayjs(weatherData.dt * 1000).format('dddd, MMMM D')} | {weatherData.name}
                 </Typography>
-                <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.3rem' }, color: textColor }}>
-                  {weatherData.weather[0].description}
-                </Typography>
-              </Box>
 
-              {/* <WbCloudyIcon sx={{ fontSize: { xs: 80, sm: 100 }, color: '#ffeb3b' }} /> */}
-              <img
-                src={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}
-                alt="Weather Icon"
-                style={{ width: '100px', height: '100px' }}
-              />
-            </Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 2,
+                    mb: 3,
+                  }}
+                >
+                  <Box>
+                    <Typography variant="h1" sx={{ fontSize: { xs: '4rem', sm: '6rem' }, fontWeight: 300, color: textColor }}>
+                      {Math.round(weatherData.main.temp)}°
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.3rem' }, color: textColor }}>
+                      {weatherData.weather[0].description}
+                    </Typography>
+                  </Box>
 
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-around',
-                textAlign: 'center',
-                flexWrap: 'wrap',
-                gap: 2,
-              }}
-            >
-              {currentData.map((item, idx) => (
-                <Box key={idx}>
-                  <Typography sx={{ color: textColor }}>{item.value} {item.icon}</Typography>
-                  <Typography variant="caption" sx={{ color: textColor }}>
-                    {item.label}
-                  </Typography>
+                  {/* <WbCloudyIcon sx={{ fontSize: { xs: 80, sm: 100 }, color: '#ffeb3b' }} /> */}
+                  <img
+                    src={`https://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`}
+                    alt="Weather Icon"
+                    style={{ width: '100px', height: '100px' }}
+                  />
                 </Box>
-              ))}
-            </Box>
 
-            <IconButton onClick={() => navigate('/details', { state: locationName })}>
-              <InfoIcon />
-            </IconButton>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-around',
+                    textAlign: 'center',
+                    flexWrap: 'wrap',
+                    gap: 2,
+                  }}
+                >
+                  {currentData.map((item, idx) => (
+                    <Box key={idx}>
+                      <Typography sx={{ color: textColor }}>{item.value} {item.icon}</Typography>
+                      <Typography variant="caption" sx={{ color: textColor }}>
+                        {item.label}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
 
+                <IconButton onClick={() => {
+                  navigate('/details', { state: locationName })
+                  // handleClick()
+                }}>
+                  <InfoIcon />
+                </IconButton>
+              </>
+            )}
           </Box>
-
         </Box>
       ) : ('')}
     </Box>
