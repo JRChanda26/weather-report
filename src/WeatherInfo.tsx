@@ -21,6 +21,8 @@ import WbCloudyIcon from '@mui/icons-material/WbCloudy';
 import InfoIcon from '@mui/icons-material/Info';
 import { auth } from './FirebaseConfig';
 import AuthenticationModal from './AuthenticationModal';
+import { Skeleton } from '@mui/material';
+
 
 interface WeatherInfoProps {
   mode: 'light' | 'dark';
@@ -203,6 +205,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
   }, [clicked, selectedCity, locationTyped, searchedLocationValue, zipTyped, searchedZipValue]);
 
   const [weatherVideo, setWeatherVideo] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!locationName) return;
@@ -261,6 +264,8 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
       } catch (error) {
         console.error('Failed to fetch weather data:', error);
         alert('Too Many Requests')
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -744,7 +749,92 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
             )}
           </Box>
         </Box>
-      ) : ('')}
+      ) : (loading && (
+        <Box
+          sx={{
+            width: '100vw',
+            height: '100vh',
+            background: '#ccc',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            position: 'relative',
+            px: 3,
+          }}
+        >
+          {/* === Top Bar Skeleton === */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 3,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              px: 2,
+              py: 1,
+            }}
+          >
+            {/* Theme Switch */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Skeleton variant="circular" width={24} height={24} />
+              <Skeleton variant="rectangular" width={50} height={32} />
+              <Skeleton variant="circular" width={24} height={24} />
+            </Box>
+
+            {/* Menu Icon */}
+            <Skeleton variant="circular" width={40} height={40} />
+          </Box>
+
+          {/* === Date & Location === */}
+          <Skeleton width={200} height={30} sx={{ mb: 2, mt: 8 }} />
+
+          {/* === Temperature and Icon === */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 3,
+              mb: 3,
+            }}
+          >
+            <Box>
+              <Skeleton width={120} height={70} sx={{ mb: 1 }} />
+              <Skeleton width={100} height={30} />
+            </Box>
+
+            <Skeleton variant="circular" width={100} height={100} />
+          </Box>
+
+          {/* === Additional Weather Info Boxes === */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-around',
+              textAlign: 'center',
+              flexWrap: 'wrap',
+              gap: 2,
+              width: '100%',
+              maxWidth: 600,
+            }}
+          >
+            {[...Array(4)].map((_, i) => (
+              <Box key={i}>
+                <Skeleton width={60} height={20} sx={{ mb: 1 }} />
+                <Skeleton width={40} height={14} />
+              </Box>
+            ))}
+          </Box>
+
+          {/* === Info Icon Skeleton === */}
+          <Skeleton variant="circular" width={40} height={40} sx={{ mt: 3 }} />
+        </Box>
+      ))}
     </Box>
   );
 }
