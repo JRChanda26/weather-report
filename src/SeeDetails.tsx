@@ -26,6 +26,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import dayjs from 'dayjs';
 import CloudIcon from '@mui/icons-material/Cloud';
 import { color } from 'html2canvas/dist/types/css/types/color';
+import { Skeleton } from '@mui/material';
+
 
 // Set default icon paths manually without touching _getIconUrl
 L.Icon.Default.mergeOptions({
@@ -76,6 +78,8 @@ function SeeDetails() {
     setAqiDetails(event.target.value as string);
   };
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const fetchWeatherReport = async () => {
       try {
@@ -95,6 +99,8 @@ function SeeDetails() {
 
       } catch (error) {
         console.error('Failed to fetch weather data:', error);
+      }finally {
+        setLoading(false);
       }
     };
 
@@ -486,6 +492,9 @@ function SeeDetails() {
   const leftBackgroundColor = theme.palette.mode === 'dark' ? '#424242' : '#e0e0e0';
   const rightBackgroundColor = theme.palette.mode === 'dark' ? '#37474f' : '#6d97a3';
   const textColor = theme.palette.mode === 'dark' ? '#F2F2F7' : '#1C1C1E';
+
+  const now = new Date();
+  const isDay = now >= new Date(weatherData?.sys?.sunrise || 0 * 1000) && now <= new Date(weatherData?.sys?.sunset || 0 * 1000);
   
   return (
     <Box>
@@ -497,7 +506,7 @@ function SeeDetails() {
             width: '100%',
             height: 'auto',
             display: 'flex',
-            justifyContent: 'space-between',
+            // justifyContent: 'space-between',
             flexDirection: 'column',
             alignItems: 'center',
           }}>
@@ -513,7 +522,7 @@ function SeeDetails() {
               />
 
               <Typography sx={{
-                fontSize: '20px',
+                fontSize: '15px',
                 fontWeight: 500,
               }}>
                 {weatherData.weather[0].description}
@@ -526,13 +535,10 @@ function SeeDetails() {
               </Typography>
               {/* <Typography>{dayOfWeek} {formattedDate}</Typography> */}
               <Typography sx={{
-                fontSize: '50px',
-                fontWeight: 700,
-                display: 'flex',
-                alignItems: 'center',
+                fontSize: '70px',
                 filter: 'drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.6))'
               }}>
-                <DeviceThermostatIcon /> {Math.round(weatherData.main.temp || 0)}°C
+                {Math.round(weatherData.main.temp || 0)}°
               </Typography>
               <Typography sx={{
                 fontSize: '14px',
@@ -547,7 +553,7 @@ function SeeDetails() {
               position: 'relative',
               width: '100%',
               height: 60,
-              margin: '10px 0px',
+              margin: '0px', //margin: '10px 0px',
               filter: 'drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.7))',
             }}>
               {/* Sun & Moon Icon */}
@@ -555,17 +561,22 @@ function SeeDetails() {
                 display: 'flex',
                 justifyContent: 'space-between',
                 flexDirection: 'row',
-                padding: '0px 20px'
+                padding: {
+                  xs: '5px 20px',
+                  sm: '5px 10px',
+                  md: '5px 10px',
+                  xl: '5px 30px'
+                } //padding: '0px 20px'
               }}>
-                <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography sx={{ display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 1 }}>
                   {/* <WbSunnyIcon /> {formattedSunriseTime} */}
-                  <WbSunnyIcon />
+                  <WbSunnyIcon /> AM
                   {/* {dayjs(weatherData.sys.sunrise * 1000).format('hh:mm A')} */}
                 </Typography>
 
-                <Typography sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography sx={{ display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 1 }}>
                   {/* <DarkModeIcon /> {formattedSunsetTime} */}
-                  <DarkModeIcon />
+                  <DarkModeIcon /> PM
                   {/* {dayjs(weatherData.sys.sunset * 1000).format('hh:mm A')} */}
                 </Typography>
               </Box>
@@ -577,10 +588,17 @@ function SeeDetails() {
                   top: '50%',
                   left: 0,
                   right: 0,
-                  height: 4,
-                  margin: '10px 20px',
-                  background: 'linear-gradient(to right, #FF0000, #FFA500)',
+                  height: 2, //4
+                  margin: {
+                    xs: '2px 60px',
+                    sm: '2px 40px',
+                    md: '2px 50px',
+                    xl: '2px 70px',
+                  }, // margin: '10px 20px',
+                  background: '#0284C7', // 'linear-gradient(to right, #FF0000, #FFA500)',
                   transform: 'translateY(-50%)',
+                  filter: 'blur(2px)',
+                  opacity: 0.7,
                 }}
               />
 
@@ -590,13 +608,14 @@ function SeeDetails() {
                   position: 'absolute',
                   left: `${20 + position * 0.6}%`,
                   transform: 'translateX(-50%)',
-                  fontSize: 35,
+                  fontSize: 25, //35
                   top: '20%',
                   zIndex: 2,
                   transition: 'left 1s ease-in-out',
                 }}
               >
-                🌞
+                {/* 🌞 */}
+                {isDay ? '🌞' : '🌝'}
               </Box>
             </Box>
 
@@ -956,7 +975,77 @@ function SeeDetails() {
 
           </Grid>
         </Grid>
-      ) : ('')}
+      ) : (loading &&(
+         <Box>
+      <Grid container>
+        {/* Left Side */}
+        <Grid item xs={12} sm={4} md={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 2 }}>
+          {/* Weather Details */}
+          <Skeleton variant="circular" width={100} height={100} />
+          <Skeleton width={120} height={20} sx={{ mt: 1 }} />
+          <Skeleton width={160} height={30} sx={{ mt: 1 }} />
+          <Skeleton width={120} height={60} sx={{ mt: 1 }} />
+          <Skeleton width={200} height={20} sx={{ mt: 1 }} />
+
+          {/* Sun Movement */}
+          <Box sx={{ width: '100%', height: 60, mt: 3 }}>
+            <Skeleton width="100%" height={20} />
+          </Box>
+
+          {/* Map */}
+          <Skeleton variant="rectangular" width="100%" height="30vh" sx={{ mt: 2 }} />
+
+          {/* Buttons */}
+          <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+            <Skeleton width={100} height={35} />
+            <Skeleton width={100} height={35} />
+          </Box>
+        </Grid>
+
+        {/* Right Side */}
+        <Grid item xs={12} sm={8} md={9}>
+          <Box p={2}>
+            {/* Forecast Header */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Skeleton width={200} height={30} />
+              <Skeleton variant="circular" width={30} height={30} />
+            </Box>
+
+            {/* Forecast Cards */}
+            <Grid container spacing={2}>
+              {[...Array(6)].map((_, idx) => (
+                <Grid item xs={12} sm={6} md={2} key={idx}>
+                  <Skeleton variant="rectangular" width="100%" height={120} />
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+
+          {/* Highlights Section */}
+          <Box p={2}>
+            <Skeleton width={200} height={30} sx={{ mb: 2 }} />
+            <Grid container spacing={2}>
+              {[...Array(6)].map((_, idx) => (
+                <Grid item xs={12} sm={6} md={4} key={idx}>
+                  <Card>
+                    <CardContent>
+                      <Skeleton width={100} height={20} />
+                      <Skeleton width={80} height={40} sx={{ mt: 2 }} />
+                      <Skeleton width="100%" height={10} sx={{ mt: 2 }} />
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
+
+          <Snackbar open={true} autoHideDuration={4000}>
+            <Alert severity="info">Loading data...</Alert>
+          </Snackbar>
+        </Grid>
+      </Grid>
+    </Box>
+      ))}
     </Box>
   )
 }
