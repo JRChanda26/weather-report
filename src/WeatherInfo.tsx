@@ -374,13 +374,14 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
 
   const [openModal, setOpenModal] = useState(false);
 
-  const handleClick = () => {
-    if (auth.currentUser) {
-      window.location.href = '/details'; // or use useNavigate()
-    } else {
-      setOpenModal(true);
-    }
-  };
+  
+  // const handleClick = () => {
+  //   if (auth.currentUser) {
+  //     window.location.href = '/details'; // or use useNavigate()
+  //   } else {
+  //     setOpenModal(true);
+  //   }
+  // };
 
   return (
     <Box>
