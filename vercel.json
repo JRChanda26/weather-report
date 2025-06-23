@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/sitemap.xml",
+      "source": "/sitemap-checkweather.xml",
       "headers": [
         {
           "key": "Content-Type",
