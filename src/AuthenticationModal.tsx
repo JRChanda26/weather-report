@@ -8,12 +8,12 @@ import {
     Link,
     useTheme,
 } from '@mui/material';
-import {
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    sendPasswordResetEmail,
-} from 'firebase/auth';
-import { auth } from './FirebaseConfig';
+// import {
+//     signInWithEmailAndPassword,
+//     createUserWithEmailAndPassword,
+//     sendPasswordResetEmail,
+// } from 'firebase/auth';
+// import { auth } from './FirebaseConfig';
 
 const AuthenticationModal = ({ open, handleClose, }: { open: boolean; handleClose: () => void; }) => {
 

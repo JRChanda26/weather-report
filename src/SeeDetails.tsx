@@ -1,14 +1,11 @@
-import { Alert, Box, Button, Card, CardContent, FormControl, Grid, MenuItem, Select, SelectChangeEvent, Snackbar, styled, Tab, Tabs, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Alert, Box, Button, Card, CardContent, Grid, SelectChangeEvent, Snackbar, styled, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 import AirIcon from '@mui/icons-material/Air';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
-import DeviceThermostatIcon from '@mui/icons-material/DeviceThermostat';
-import SouthIcon from '@mui/icons-material/South';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
-import CircleIcon from '@mui/icons-material/Circle';
 import InfoIcon from '@mui/icons-material/Info';
 import NavigationIcon from '@mui/icons-material/Navigation';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
@@ -16,8 +13,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useLocation, useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
-import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import LinearProgress from '@mui/material/LinearProgress';
 // import ReactSpeedometer from 'react-d3-speedometer';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -25,7 +22,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import dayjs from 'dayjs';
 import CloudIcon from '@mui/icons-material/Cloud';
-import { color } from 'html2canvas/dist/types/css/types/color';
+// import { color } from 'html2canvas/dist/types/css/types/color';
 import { Skeleton } from '@mui/material';
 
 
@@ -72,11 +69,11 @@ function SeeDetails() {
   const longitude = weatherData?.coord?.lon || 0;
   // console.log(latitude, longitude)
 
-  const [aqiDetails, setAqiDetails] = useState('chart');
+  // const [aqiDetails, setAqiDetails] = useState('chart');
 
-  const handleChange = (event: SelectChangeEvent) => {
-    setAqiDetails(event.target.value as string);
-  };
+  // const handleChange = (event: SelectChangeEvent) => {
+  //   setAqiDetails(event.target.value as string);
+  // };
 
   const [loading, setLoading] = useState(true);
 
@@ -481,13 +478,7 @@ function SeeDetails() {
   // const normalizedUVValue = (Math.min(uvIndex, 20) / 20) * 100;
 
   const uvIndexValue = (Math.round(uvIndex * 9.09));
-  const uvDetails = getUVIndexLevel(uvIndex);
-
-  const [tabValue, setTabValue] = React.useState('today');
-
-  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
-    setTabValue(newValue);
-  };
+  // const uvDetails = getUVIndexLevel(uvIndex);
 
   const leftBackgroundColor = theme.palette.mode === 'dark' ? '#424242' : '#e0e0e0';
   const rightBackgroundColor = theme.palette.mode === 'dark' ? '#37474f' : '#6d97a3';

@@ -3,15 +3,11 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import WeatherInfo from './WeatherInfo';
 import SeeDetails from './SeeDetails';
 import { createTheme, CssBaseline, ThemeProvider } from '@mui/material';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import MaterialUISwitch from './MaterialUISwitch';
 import ForecastReport from './ForecastReport';
 import AnalyticsReport from './AnalyticsReport';
-import { Helmet } from 'react-helmet';
 import SeoMeta from './SeoMeta';
-import Signup from './Signup';
-import Login from './Login';
+// import Signup from './Signup';
+// import Login from './Login';
 
 function App() {
   // const [mode, setMode] = useState<'light' | 'dark'>('light');

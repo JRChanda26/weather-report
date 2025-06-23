@@ -1,25 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import axios from 'axios';
-import { Button, createTheme, Divider, Drawer, FormControl, FormControlLabel, IconButton, InputBase, InputLabel, Menu, MenuItem, Paper, Radio, RadioGroup, Select, Switch, TextField, Typography, useTheme } from '@mui/material';
+import { Button, Drawer, FormControl, FormControlLabel, IconButton, MenuItem, Radio, RadioGroup, Select, TextField, Typography, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import NorthIcon from '@mui/icons-material/North';
-import SouthIcon from '@mui/icons-material/South';
 import { Country, State, City, ICountry, IState, ICity } from "country-state-city";
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import MaterialUISwitch from './MaterialUISwitch';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import dayjs from 'dayjs';
 import MenuIcon from '@mui/icons-material/Menu';
-import SearchIcon from '@mui/icons-material/Search';
-import DirectionsIcon from '@mui/icons-material/Directions';
-import WbCloudyIcon from '@mui/icons-material/WbCloudy';
 import InfoIcon from '@mui/icons-material/Info';
-import { auth } from './FirebaseConfig';
+// import { auth } from './FirebaseConfig';
 import AuthenticationModal from './AuthenticationModal';
 import { Skeleton } from '@mui/material';
 
@@ -204,7 +197,6 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
     );
   }, [clicked, selectedCity, locationTyped, searchedLocationValue, zipTyped, searchedZipValue]);
 
-  const [weatherVideo, setWeatherVideo] = useState('');
   const [weatherImage, setWeatherImage] = useState('');
 
   const [loading, setLoading] = useState(true);
@@ -333,27 +325,13 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
   // });
   // const formattedDate = `${datePart}`;
 
-  const latitude = weatherData?.coord?.lat || 0;
-  const longitude = weatherData?.coord?.lon || 0;
+  // const latitude = weatherData?.coord?.lat || 0;
+  // const longitude = weatherData?.coord?.lon || 0;
   // console.log(latitude, longitude)
 
   const textColor = theme.palette.mode === 'dark' ? '#F2F2F7' : '#1C1C1E';
   const toggleButtonColor = theme.palette.mode === 'dark' ? '#1C1C1E' : '#F2F2F7';
 
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-
-  const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const [selectedOption, setSelectedOption] = useState(0);
-
-  const [darkMode, setDarkMode] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const [searchMode, setSearchMode] = useState<'location' | 'zip' | 'dropdown' | ''>('');
