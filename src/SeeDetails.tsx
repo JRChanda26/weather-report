@@ -99,7 +99,7 @@ function SeeDetails() {
 
       } catch (error) {
         console.error('Failed to fetch weather data:', error);
-      }finally {
+      } finally {
         setLoading(false);
       }
     };
@@ -493,9 +493,11 @@ function SeeDetails() {
   const rightBackgroundColor = theme.palette.mode === 'dark' ? '#37474f' : '#6d97a3';
   const textColor = theme.palette.mode === 'dark' ? '#F2F2F7' : '#1C1C1E';
 
-  const now = new Date();
-  const isDay = now >= new Date(weatherData?.sys?.sunrise || 0 * 1000) && now <= new Date(weatherData?.sys?.sunset || 0 * 1000);
-  
+  const now = Date.now();
+  const sunrise = (weatherData?.sys?.sunrise || 0) * 1000;
+  const sunset = (weatherData?.sys?.sunset || 0) * 1000;
+  const isDay = now >= sunrise && now <= sunset;
+
   return (
     <Box>
       {weatherData ? (
@@ -606,7 +608,8 @@ function SeeDetails() {
               <Box
                 sx={{
                   position: 'absolute',
-                  left: `${20 + position * 0.6}%`,
+                  // left: `${20 + position * 0.6}%`,
+                  left: isDay ? `${20 + position * 0.6}%` : `${20 + 100 * 0.6}%`,
                   transform: 'translateX(-50%)',
                   fontSize: 25, //35
                   top: '20%',
@@ -975,76 +978,76 @@ function SeeDetails() {
 
           </Grid>
         </Grid>
-      ) : (loading &&(
-         <Box>
-      <Grid container>
-        {/* Left Side */}
-        <Grid item xs={12} sm={4} md={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 2 }}>
-          {/* Weather Details */}
-          <Skeleton variant="circular" width={100} height={100} />
-          <Skeleton width={120} height={20} sx={{ mt: 1 }} />
-          <Skeleton width={160} height={30} sx={{ mt: 1 }} />
-          <Skeleton width={120} height={60} sx={{ mt: 1 }} />
-          <Skeleton width={200} height={20} sx={{ mt: 1 }} />
+      ) : (loading && (
+        <Box>
+          <Grid container>
+            {/* Left Side */}
+            <Grid item xs={12} sm={4} md={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 2 }}>
+              {/* Weather Details */}
+              <Skeleton variant="circular" width={100} height={100} />
+              <Skeleton width={120} height={20} sx={{ mt: 1 }} />
+              <Skeleton width={160} height={30} sx={{ mt: 1 }} />
+              <Skeleton width={120} height={60} sx={{ mt: 1 }} />
+              <Skeleton width={200} height={20} sx={{ mt: 1 }} />
 
-          {/* Sun Movement */}
-          <Box sx={{ width: '100%', height: 60, mt: 3 }}>
-            <Skeleton width="100%" height={20} />
-          </Box>
+              {/* Sun Movement */}
+              <Box sx={{ width: '100%', height: 60, mt: 3 }}>
+                <Skeleton width="100%" height={20} />
+              </Box>
 
-          {/* Map */}
-          <Skeleton variant="rectangular" width="100%" height="30vh" sx={{ mt: 2 }} />
+              {/* Map */}
+              <Skeleton variant="rectangular" width="100%" height="30vh" sx={{ mt: 2 }} />
 
-          {/* Buttons */}
-          <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-            <Skeleton width={100} height={35} />
-            <Skeleton width={100} height={35} />
-          </Box>
-        </Grid>
-
-        {/* Right Side */}
-        <Grid item xs={12} sm={8} md={9}>
-          <Box p={2}>
-            {/* Forecast Header */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-              <Skeleton width={200} height={30} />
-              <Skeleton variant="circular" width={30} height={30} />
-            </Box>
-
-            {/* Forecast Cards */}
-            <Grid container spacing={2}>
-              {[...Array(6)].map((_, idx) => (
-                <Grid item xs={12} sm={6} md={2} key={idx}>
-                  <Skeleton variant="rectangular" width="100%" height={120} />
-                </Grid>
-              ))}
+              {/* Buttons */}
+              <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                <Skeleton width={100} height={35} />
+                <Skeleton width={100} height={35} />
+              </Box>
             </Grid>
-          </Box>
 
-          {/* Highlights Section */}
-          <Box p={2}>
-            <Skeleton width={200} height={30} sx={{ mb: 2 }} />
-            <Grid container spacing={2}>
-              {[...Array(6)].map((_, idx) => (
-                <Grid item xs={12} sm={6} md={4} key={idx}>
-                  <Card>
-                    <CardContent>
-                      <Skeleton width={100} height={20} />
-                      <Skeleton width={80} height={40} sx={{ mt: 2 }} />
-                      <Skeleton width="100%" height={10} sx={{ mt: 2 }} />
-                    </CardContent>
-                  </Card>
+            {/* Right Side */}
+            <Grid item xs={12} sm={8} md={9}>
+              <Box p={2}>
+                {/* Forecast Header */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                  <Skeleton width={200} height={30} />
+                  <Skeleton variant="circular" width={30} height={30} />
+                </Box>
+
+                {/* Forecast Cards */}
+                <Grid container spacing={2}>
+                  {[...Array(6)].map((_, idx) => (
+                    <Grid item xs={12} sm={6} md={2} key={idx}>
+                      <Skeleton variant="rectangular" width="100%" height={120} />
+                    </Grid>
+                  ))}
                 </Grid>
-              ))}
-            </Grid>
-          </Box>
+              </Box>
 
-          <Snackbar open={true} autoHideDuration={4000}>
-            <Alert severity="info">Loading data...</Alert>
-          </Snackbar>
-        </Grid>
-      </Grid>
-    </Box>
+              {/* Highlights Section */}
+              <Box p={2}>
+                <Skeleton width={200} height={30} sx={{ mb: 2 }} />
+                <Grid container spacing={2}>
+                  {[...Array(6)].map((_, idx) => (
+                    <Grid item xs={12} sm={6} md={4} key={idx}>
+                      <Card>
+                        <CardContent>
+                          <Skeleton width={100} height={20} />
+                          <Skeleton width={80} height={40} sx={{ mt: 2 }} />
+                          <Skeleton width="100%" height={10} sx={{ mt: 2 }} />
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+
+              <Snackbar open={true} autoHideDuration={4000}>
+                <Alert severity="info">Loading data...</Alert>
+              </Snackbar>
+            </Grid>
+          </Grid>
+        </Box>
       ))}
     </Box>
   )

@@ -205,6 +205,8 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
   }, [clicked, selectedCity, locationTyped, searchedLocationValue, zipTyped, searchedZipValue]);
 
   const [weatherVideo, setWeatherVideo] = useState('');
+  const [weatherImage, setWeatherImage] = useState('');
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -217,49 +219,49 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
         );
         setWeatherData(result.data);
 
-        // const mainWeather = result.data.weather[0].main;
+        const mainWeather = result.data.weather[0].main;
 
-        // switch (mainWeather.toLowerCase()) {
-        //   case 'clear':
-        //     setWeatherVideo('/sunny.mp4');
-        //     break;
+        switch (mainWeather.toLowerCase()) {
+          case 'clear':
+            setWeatherImage('/images/sunny.png');
+            break;
 
-        //   case 'clouds':
-        //     setWeatherVideo('/cloudy.mp4');
-        //     break;
+          case 'clouds':
+            setWeatherImage('/images/cloudy.png');
+            break;
 
-        //   case 'rain':
-        //   case 'drizzle':
-        //     setWeatherVideo('/rainy.mp4');
-        //     break;
+          case 'rain':
+          case 'drizzle':
+            setWeatherImage('/images/rainy.png');
+            break;
 
-        //   case 'thunderstorm':
-        //   case 'squall':
-        //   case 'tornado':
-        //     setWeatherVideo('/stormy.mp4');
-        //     break;
+          case 'thunderstorm':
+          case 'squall':
+          case 'tornado':
+            setWeatherImage('/images/stormy.png');
+            break;
 
-        //   case 'snow':
-        //     setWeatherVideo('/snowy.mp4');
-        //     break;
+          case 'snow':
+            setWeatherImage('/images/snowy.png');
+            break;
 
-        //   case 'mist':
-        //   case 'fog':
-        //   case 'haze':
-        //   case 'smoke':
-        //     setWeatherVideo('/foggy.mp4');
-        //     break;
+          case 'mist':
+          case 'fog':
+          case 'haze':
+          case 'smoke':
+            setWeatherImage('/images/foggy.png');
+            break;
 
-        //   case 'dust':
-        //   case 'sand':
-        //   case 'ash':
-        //     setWeatherVideo('/dusty.mp4');
-        //     break;
+          case 'dust':
+          case 'sand':
+          case 'ash':
+            setWeatherImage('/images/dusty.png');
+            break;
 
-        //   default:
-        //     setWeatherVideo('');
-        //     break;
-        // }
+          default:
+            setWeatherImage('/images/sky-background.jpg');
+            break;
+        }
 
       } catch (error) {
         console.error('Failed to fetch weather data:', error);
@@ -387,7 +389,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
           sx={{
             width: '100vw',
             height: '100vh',
-            backgroundImage: 'url("sky-background.jpg")',
+            backgroundImage: `url(${weatherImage})`, //backgroundImage: 'url("sky-background.jpg")',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             color: '#fff',
@@ -754,7 +756,7 @@ function WeatherInfo({ mode, handleToggle }: WeatherInfoProps) {
           sx={{
             width: '100vw',
             height: '100vh',
-            background: '#ccc',
+            // background: '#ccc',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
