@@ -2,4 +2,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://weather-report-142f.vercel.app/sitemap-checkweather.xml
+Sitemap: https://weather-report-142f.vercel.app/sitemap.xml
